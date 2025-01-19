@@ -1,0 +1,10 @@
+theme = "dhruv-archives-theme"
+baseURL = "http://example.org/"
+languageCode = "en-us"
+title = "Theme Font Test"
+
+[params]
+  google_fonts = [
+    ["Jersey 15", "400"],
+    ["Roboto", "400,700"]
+  ]

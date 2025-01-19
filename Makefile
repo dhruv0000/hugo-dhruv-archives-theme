@@ -8,7 +8,7 @@ setup-test:
 	@mkdir -p $(TEST_DIR)/{archetypes,content,layouts,static,themes}
 	@cp -r . $(TEST_DIR)/themes/$(THEME_NAME)
 	@cd $(TEST_DIR) && \
-	echo "theme = \"$(THEME_NAME)\"\nbaseURL = \"http://example.org/\"\nlanguageCode = \"en-us\"\ntitle = \"Theme Font Test\"\n\n[params]\n  google_fonts = [\n    [\"Jersey 25\", \"400,700\"],\n    [\"Roboto\", \"400,700\"]\n  ]" > config.toml
+	echo "theme = \"$(THEME_NAME)\"\nbaseURL = \"http://example.org/\"\nlanguageCode = \"en-us\"\ntitle = \"Theme Font Test\"\n\n[params]\n  google_fonts = [\n    [\"Jersey 15\", \"400\"],\n    [\"Roboto\", \"400,700\"]\n  ]" > config.toml
 	@echo "---" > $(TEST_DIR)/content/font-test.md
 	@echo "title: \"Font Test\"" >> $(TEST_DIR)/content/font-test.md
 	@echo "date: 2023-01-01" >> $(TEST_DIR)/content/font-test.md

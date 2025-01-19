@@ -6,11 +6,17 @@
     content="width=device-width, initial-scale=1, shrink-to-fit=no"
   />
 
+  <!-- Google Fonts -->
+  {{ with .Site.Params.google_fonts }}
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family={{ range $i, $font := . }}{{ if $i }}|{{ end }}{{ index $font 0 }}:{{ index $font 1 }}{{ end }}&display=swap">
+  {{ end }}
+
   <!-- title -->
   <title>{{ if not .IsHome }}{{ .Title }} - {{ end }}{{ site.Title }}</title>
 
   <!-- meta -->
-  <meta name="theme-color" />
+  <meta name="theme-color" content="{{ $.Scratch.Get `bg_color` }}" />
 
   <!-- author -->
   {{ $site_author := or site.Author.name site.Params.name site.Title }}

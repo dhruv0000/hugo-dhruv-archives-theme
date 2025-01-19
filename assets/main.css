@@ -53,7 +53,7 @@ html,
   -o-tab-size: 4;
      tab-size: 4;
   /* 3 */
-  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  /* font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
   /* 4 */
   font-feature-settings: normal;
   /* 5 */
@@ -73,6 +73,8 @@ body {
   /* 1 */
   line-height: inherit;
   /* 2 */
+  font-family: 'Roboto', sans-serif;
+  /* 3 */
 }
 
 /*
@@ -102,6 +104,9 @@ abbr:where([title]) {
 /*
 Remove the default font size and weight for headings.
 */
+header {
+  font-family: 'Jersey 15', serif;
+}
 
 h1,
 h2,
@@ -111,6 +116,10 @@ h5,
 h6 {
   font-size: inherit;
   font-weight: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Jersey 15', serif;
 }
 
 /*
@@ -472,11 +481,6 @@ body:is(.dark *)::before {
   background-color: rgb(0 0 0 / 0.85);
 }
 
-h1,
-  h2,
-  h3 {
-  font-weight: 600 !important;
-}
 
 pre {
   direction: ltr;
@@ -725,7 +729,7 @@ pre {
 
 .prose :where(h1):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
   color: var(--tw-prose-headings);
-  font-weight: 800;
+  font-weight: 400;
   font-size: 2.25em;
   margin-top: 0;
   margin-bottom: 0.8888889em;
@@ -2012,3 +2016,30 @@ article .highlight {
 .\[\&_svg\]\:block svg {
   display: block;
 }
+
+/* 
+.custom-header {
+  /* Override any general header styles here if needed */
+  /* font-weight: 600; */
+/* } */
+
+.custom-header-title {
+  /* Override styles for the site title */
+  color: inherit; /* Reset color */
+  font-weight: inherit; /* Reset font weight */
+  margin-top: inherit; /* Reset margin-top */
+  margin-bottom: inherit; /* Reset margin-bottom */
+  line-height: inherit; /* Reset line-height */
+}
+
+.custom-header-nav {
+  /* Override styles for navigation links */
+  font-weight: inherit; /* Reset font weight */
+  color: inherit; /* Reset color */
+}
+
+.custom-header-social {
+  /* Override styles for social links */
+  font-weight: inherit; /* Reset font weight */
+  color: inherit; /* Reset color */
+} */

@@ -1,34 +1,34 @@
-<div align="center">
 
-Link in bio to **widgets**,
-your online **home screen**. ➫ [kee.so](https://kee.so/)
+<div align="center">
+<h1>Hugo theme for Dhruv Archives </h1>
+
+A Hugo theme for dhruv-archives.com (snake-case) or dhruvArchives.com (camelCase), built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper).
 
 </div>
-
 ---
 
-<div align="center">
-<h1>Paper <sup><sup><sub>6.28</sub></sup></sup></h1>
-
-Demo → [hugo-paper.vercel.app](https://hugo-paper.vercel.app/)
-
-A simple, clean, customizable Hugo theme.
-
-⚡️ Fast | 👒 Customizable | 🫙 Smooth
-
-</div>
-
-## Links
-
-Product Hunt: [producthunt.com/posts/hugo-paper-6](https://www.producthunt.com/posts/hugo-paper-6)
-
-Hugo themes: [themes.gohugo.io/hugo-paper](https://themes.gohugo.io/hugo-paper/)
-
 ## Overview
-
+[to-do] Change this ref
 ![](./images/screenshot.png)
 ![](./images/screenshot_dark.png)
 ![](./images/pagespeed.png)
+
+## Customizations
+
+This theme includes several specific customizations on top of the base hugo-paper theme:
+
+[to-do] All the customizations
+1. **Typography**
+   - Primary Font: Jersey 15
+   - Secondary Font: Roboto
+
+2. **Color Scheme**
+   - Implements [Flexoki](https://stephango.com/flexoki) color palette
+   - Carefully chosen colors for both light and dark modes
+
+3. **Dark Mode Animation**
+   - Enhanced dark/light mode transition
+   - Smooth animation; inspired by Jersey 15
 
 ## Options
 
@@ -98,35 +98,23 @@ math = true                                 # enable KaTeX math typesetting for 
 Inside the folder of your Hugo project, run:
 
 ```bash
-git submodule add https://github.com/nanxiaobei/hugo-paper themes/paper
+git submodule add https://github.com/dhruv0000/hugo-dhruv-archives-theme themes/dhruv-archives-theme
 ```
 
-Open `config.toml`(or `hugo.toml`), change `theme` to `"paper"`:
+Open `config.toml`(or `hugo.toml`), change `theme` to `"dhruv-archives-theme"`:
 
 ```toml
-theme = "paper"
+theme = "dhruv-archives-theme"
+```
+
+Then run:
+
+```bash
+hugo server
 ```
 
 For more information, please read the [official guide](https://gohugo.io/getting-started/quick-start/#configure-the-site) of Hugo.
 
-### As hugo module
-
-Add paper theme ad dependency of your site:
-
-```bash
-hugo mod init github.com/<your_user>/<your_project>
-```
-
-Open `config.toml`(or `hugo.toml`), remove the `theme` line (if present), add `module` section to the bottom of the file:
-
-```toml
-[module]
-  [[module.imports]]
-    path = "github.com/nanxiaobei/hugo-paper"
-```
-
-For more information, please read the [official guide](https://gohugo.io/hugo-modules/use-modules/#use-a-module-for-a-theme) of Hugo.
-
 ## License
 
-[MIT License](https://github.com/nanxiaobei/hugo-paper/blob/main/LICENSE) (c) [nanxiaobei](https://lee.so/)
+[MIT License](https://github.com/dhruv0000//blob/main/LICENSE) (c) [dhruv0000](https://dhruv-archives.com/)

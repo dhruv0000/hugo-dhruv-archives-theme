@@ -2042,4 +2042,48 @@ article .highlight {
   /* Override styles for social links */
   font-weight: inherit; /* Reset font weight */
   color: inherit; /* Reset color */
-} */
+}
+
+:root {
+  --w: calc(680px + 32px * 2);
+  
+  /* Light Theme Colors */
+  --tw-prose-body: #100F0F; /* black */
+  --tw-prose-headings: #1C1B1A; /* base-950 */
+  --tw-prose-lead: #282726; /* base-900 */
+  --tw-prose-links: #343331; /* base-850 */
+  --tw-prose-bold: #403E3C; /* base-800 */
+  --tw-prose-counters: #575653; /* base-700 */
+  --tw-prose-bullets: #6F6E69; /* base-600 */
+  --tw-prose-hr: #878580; /* base-500 */
+  --tw-prose-quotes: #B7B5AC; /* base-300 */
+  --tw-prose-quote-borders: #CECDC3; /* base-200 */
+  --tw-prose-captions: #DAD8CE; /* base-150 */
+  --tw-prose-kbd: #E6E4D9; /* base-100 */
+  --tw-prose-kbd-shadows: 231, 227, 210; /* RGB from base-100 */
+  --tw-prose-code: #F2F0E5; /* base-50 */
+  --tw-prose-pre-code: #F2F0E5; /* base-50 */
+  --tw-prose-pre-bg: #1C1B1A; /* base-950 */
+  --tw-prose-th-borders: #343331; /* base-850 */
+  --tw-prose-td-borders: #403E3C; /* base-800 */
+
+  /* Dark Theme Colors */
+  --tw-prose-invert-body: #CECDC3; /* base-200 */
+  --tw-prose-invert-headings: #DAD8CE; /* base-150 */
+  --tw-prose-invert-lead: #E6E4D9; /* base-100 */
+  --tw-prose-invert-links: #F2F0E5; /* base-50 */
+  --tw-prose-invert-bold: #F2F0E5; /* base-50 */
+  --tw-prose-invert-counters: #B7B5AC; /* base-300 */
+  --tw-prose-invert-bullets: #878580; /* base-500 */
+  --tw-prose-invert-hr: #6F6E69; /* base-600 */
+  --tw-prose-invert-quotes: #575653; /* base-700 */
+  --tw-prose-invert-quote-borders: #403E3C; /* base-800 */
+  --tw-prose-invert-captions: #343331; /* base-850 */
+  --tw-prose-invert-kbd: #282726; /* base-900 */
+  --tw-prose-invert-kbd-shadows: 40, 38, 36; /* RGB from base-900 */
+  --tw-prose-invert-code: #1C1B1A; /* base-950 */
+  --tw-prose-invert-pre-code: #CECDC3; /* base-200 */
+  --tw-prose-invert-pre-bg: rgba(0, 0, 0, 0.5); /* 50% opacity black */
+  --tw-prose-invert-th-borders: #282726; /* base-900 */
+  --tw-prose-invert-td-borders: #1C1B1A; /* base-950 */
+}

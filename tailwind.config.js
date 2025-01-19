@@ -6,4 +6,9 @@ module.exports = {
     extend: {},
   },
   plugins: [require('@tailwindcss/typography')],
+  variants: {
+    extend: {
+      opacity: ['fade'],
+    },
+  },
 };

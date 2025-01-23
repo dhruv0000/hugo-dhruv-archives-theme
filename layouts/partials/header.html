@@ -3,8 +3,14 @@
     <a class="-translate-y-[1px] text-2xl font-medium custom-header-title" href="{{ `` | absURL }}"
       >{{ site.Title }}</a
     >
-    <div
+    <!-- <div
       class="btn-dark text-[0] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer {{ if site.Params.monoDarkIcon }}[background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert{{ else }}[background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)]{{ end }} dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+      style="background: url('button/bright.svg') center/cover no-repeat"
+    ></div> -->
+    <div
+      class="btn-dark text-[0] ltr:ml-4 rtl:mr-4 h-button w-button shrink-0 cursor-pointer"
       role="button"
       aria-label="Dark"
     ></div>
@@ -38,6 +44,11 @@
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
       localStorage.setItem('dark', isDark);
+
+      const btnDark = document.querySelector('.btn-dark');
+      if (btnDark) {
+        btnDark.style.background = `url('button/${isDark ? 'dark' : 'bright'}.svg') center/cover no-repeat`;
+      }
     };
 
     // init
@@ -56,8 +67,16 @@
 
     // manual switch
     const btnDark = document.querySelector('.btn-dark');
+
     btnDark.addEventListener('click', () => {
-      setDark(localStorage.getItem('dark') !== 'true');
+      const goingDark = localStorage.getItem('dark') !== 'true';
+      setDark(goingDark);
+
+      // Remove any leftover animations
+      btnDark.classList.remove('anim-dark', 'anim-light');
+
+      // If we are going dark, run the "dark" animation; else run the "light" animation
+      btnDark.classList.add(goingDark ? 'anim-dark' : 'anim-light');
     });
   </script>
 

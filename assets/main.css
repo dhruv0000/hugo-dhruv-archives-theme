@@ -1722,9 +1722,53 @@ article .highlight {
   background: var(--url) center center/cover no-repeat;
 }
 
-.\[transition\:_background-position_0\.4s_steps\(5\)\] {
-  transition: background-position 0.4s steps(5);
+/* Dark mode button animation */
+.w-button {
+  width: 2.5rem;
 }
+
+.h-button {
+  height: 2rem;
+  margin-bottom: 0.4rem;
+}
+
+@keyframes darkModeTransition {
+  0%   { background-image: url("/button/bright.svg"); opacity: 1; }
+  25%  { background-image: url("/button/bright-2.svg"); opacity: 1; }
+  50%  { background-image: url("/button/dark-2.svg"); opacity: 1; }
+  75%  { background-image: url("/button/dark.svg"); opacity: 1; }
+  100% { background-image: url("/button/dark.svg"); opacity: 1; }
+}
+
+@keyframes lightModeTransition {
+  0%   { background-image: url("/button/dark.svg"); opacity: 1; }
+  25%  { background-image: url("/button/dark-2.svg"); opacity: 1; }
+  50%  { background-image: url("/button/bright-2.svg"); opacity: 1; }
+  75%  { background-image: url("/button/bright.svg"); opacity: 1; }
+  100% { background-image: url("/button/bright.svg"); opacity: 1; }
+}
+
+.btn-dark {
+  /* width: 1.5rem;
+  height: 1.5rem; */
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+/* For example, if you add a class "anim-dark" in JS: */
+.btn-dark.anim-dark {
+  animation: darkModeTransition 3s ease-in-out forwards;
+}
+
+/* And "anim-light" for the reverse: */
+.btn-dark.anim-light {
+  animation: lightModeTransition 3s ease-in-out forwards;
+}
+
+/* .\[transition\:_background-position_0\.4s_steps\(5\)\] {
+  transition: background-position 0.4s steps(5);
+} */
 
 .dark\:prose-invert:is(.dark *) {
   --tw-prose-body: var(--tw-prose-invert-body);
@@ -1820,9 +1864,9 @@ article .highlight {
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
-.dark\:\[background-position\:right\]:is(.dark *) {
+/* .dark\:\[background-position\:right\]:is(.dark *) {
   background-position: right;
-}
+} */
 
 .dark\:hover\:bg-white\/\[12\%\]:hover:is(.dark *) {
   background-color: rgb(255 255 255 / 12%);

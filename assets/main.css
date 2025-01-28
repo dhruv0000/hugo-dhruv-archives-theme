@@ -1724,12 +1724,17 @@ article .highlight {
 
 /* Dark mode button animation */
 .w-button {
-  width: 2.5rem;
+  width: 2.9rem;
 }
 
 .h-button {
-  height: 2rem;
+  height: 2.3rem;
   margin-bottom: 0.4rem;
+}
+
+
+.text-header {
+  font-size: 2rem;
 }
 
 @keyframes darkModeTransition {

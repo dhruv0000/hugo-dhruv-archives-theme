@@ -49,6 +49,7 @@ Available options to `config.toml` or `hugo.toml`:
   instagram = 'YOUR_INSTAGRAM_ID'           # instagram.com/YOUR_INSTAGRAM_ID
   linkedin = 'YOUR_LINKEDIN_ID'             # linkedin.com/in/YOUR_LINKEDIN_ID
   mastodon = 'YOUR_MASTODON_LINK'           # e.g. 'https://mastodon.instance/@xxx'
+  behance = 'YOUR_BEHANCE_LINK'           # e.g. 'https://www.behance.net/@xxx'
   threads = '@YOUR_THREADS_ID'              # threads.net/@YOUR_THREADS_ID
   bluesky = 'YOUR_BLUESKY_ID'               # https://bsky.app/profile/YOUR_BLUESKY_ID
   rss = true                                # show rss icon

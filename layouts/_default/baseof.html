@@ -12,7 +12,8 @@
 {{ $bg_color := $.Scratch.Get "bg_color" }}<!---->
 
 <!-- social_list -->
-{{ $social_params := slice "twitter" "github" "instagram" "linkedin" "mastodon"
+<!--This is also the icon order in fromt page -->
+{{ $social_params := slice "github" "linkedin" "twitter" "instagram" "mastodon" "behance"
 "threads" "bluesky" "rss" }}<!---->
 {{ range $social_params }}<!---->
 {{ if isset site.Params . }}<!---->

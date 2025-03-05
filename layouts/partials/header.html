@@ -53,6 +53,7 @@
 
     // init
     const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    const goingDark = localStorage.getItem('dark') !== 'true';
     if (htmlClass.contains('dark')) {
       setDark(true);
     } else {
@@ -67,6 +68,7 @@
 
     // manual switch
     const btnDark = document.querySelector('.btn-dark');
+    btnDark.classList.add(!goingDark ? 'anim-dark' : 'anim-light');
 
     btnDark.addEventListener('click', () => {
       const goingDark = localStorage.getItem('dark') !== 'true';

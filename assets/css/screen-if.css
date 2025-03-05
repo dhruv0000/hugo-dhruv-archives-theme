@@ -4,12 +4,7 @@
 }
 .mobile-only {
   display: flex;
-  
-  .right-section {
-    flex: 2;
-    padding-left: 2em;
-    padding-top: 2em;
-  }
+
 }
 
 /* Tablet styles */

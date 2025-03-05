@@ -3,14 +3,14 @@
 
 name = "Paper"
 license = "MIT"
-licenselink = "https://github.com/nanxiaobei/hugo-paper/blob/main/LICENSE"
-description = "A simple, clean, flexible Hugo theme"
-homepage = "https://github.com/nanxiaobei/hugo-paper/"
-demosite = "https://hugo-paper.vercel.app"
-tags = ["Responsive", "Simple", "Clean", "Light", "White", "Blog"]
+licenselink = "https://github.com/dhruv0000/hugo-dhruv-archives-theme/blob/main/LICENSE"
+description = "A simple, clean, flexible Hugo theme for Dhruv Archives."
+homepage = "https://github.com/dhruv0000/dhruv-archives"
+demosite = "https://dhruv-archives.com"
+tags = ["Responsive", "Simple", "Clean", "Light", "White", "Dark", "Art", "Blog"]
 features = ["Responsive", "One Column", "Blog"]
 min_version = "0.57.1"
 
 [author]
-  name = "nanxiaobei"
-  homepage = "https://lee.so/"
+  name = "Dhruv Patel"
+  homepage = "https://dhruvArchives.com/"

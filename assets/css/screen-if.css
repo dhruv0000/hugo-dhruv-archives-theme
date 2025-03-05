@@ -3,7 +3,13 @@
   display: none;
 }
 .mobile-only {
-  display: block;
+  display: flex;
+  
+  .right-section {
+    flex: 2;
+    padding-left: 2em;
+    padding-top: 2em;
+  }
 }
 
 /* Tablet styles */
@@ -12,7 +18,7 @@
     display: none;
   }
   .tablet-only {
-    display: block;
+    display: flex;
   }
 }
 
@@ -24,9 +30,4 @@
   .desktop-only {
     display: block;
   }
-}
-
-div#about-container {
-  display: flex;
-  text-align: left;
 }

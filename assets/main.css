@@ -15,6 +15,7 @@
 */
 
 *,
+
 ::before,
 ::after {
   box-sizing: border-box;
@@ -73,7 +74,7 @@ body {
   /* 1 */
   line-height: inherit;
   /* 2 */
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Tomorrow', sans-serif;
   /* 3 */
 }
 
@@ -105,7 +106,8 @@ abbr:where([title]) {
 Remove the default font size and weight for headings.
 */
 header {
-  font-family: 'Jersey 15', serif;
+  font-family: 'Jersey 25 Charted', serif;
+  font-weight: 400 !important;
 }
 
 h1,
@@ -119,7 +121,8 @@ h6 {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Jersey 15', serif;
+  font-family: 'Jersey 25 Charted', serif;
+  font-weight: 400 !important;
 }
 
 /*
@@ -452,8 +455,10 @@ Constrain images and videos to the parent width and preserve their intrinsic asp
 
 img,
 video {
-  max-width: 100%;
   height: auto;
+}
+img {
+  max-width: 8em;
 }
 
 /* Make elements with the HTML hidden attribute stay hidden by default */
@@ -765,7 +770,7 @@ pre {
 }
 
 .prose :where(h3 strong):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
-  font-weight: 700;
+  /* font-weight: 700; */
   color: inherit;
 }
 
@@ -778,7 +783,7 @@ pre {
 }
 
 .prose :where(h4 strong):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
-  font-weight: 700;
+  /* font-weight: 700; */
   color: inherit;
 }
 
@@ -892,7 +897,7 @@ pre {
 }
 
 .prose :where(table):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
-  width: 100%;
+  /* width: 100%; */
   table-layout: auto;
   margin-top: 2em;
   margin-bottom: 2em;
@@ -1478,10 +1483,6 @@ pre {
 
 .pl-3 {
   padding-left: 0.75rem;
-}
-
-.pt-14 {
-  padding-top: 3.5rem;
 }
 
 .text-center {

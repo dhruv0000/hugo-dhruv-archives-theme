@@ -18,33 +18,40 @@
 <!-- avatar -->
 {{ if and $.IsHome (eq $paginator.PageNumber 1) (eq $index 0) }}<!---->
 
-{{ $avatar_url := $.Scratch.Get "avatar_url" }}<!---->
-{{ if or $avatar_url site.Params.name }}
-<div class="-mt-2 mb-12 flex items-center">
-  {{ if $avatar_url }}
-  <div
-    class="ltr:-ml-1 rtl:-mr-1 ltr:mr-5 rtl:ml-5 h-24 w-24 shrink-0 rounded-full border-[0.5px] border-black/10 bg-white/50 p-3 dark:!bg-white/90"
-  >
-    <img
-      class="my-0 h-full w-full rounded-full !bg-black/5 hover:animate-spin dark:!bg-black/80"
-      src="{{ $avatar_url }}"
-      alt="{{ site.Params.name | default site.Title }}"
-    />
-  </div>
-  {{ end }}<!---->
-  {{ if site.Params.name }}
-  <div>
-    <div class="mb-1 mt-3 text-2xl font-medium text-black dark:text-white">
-      {{ site.Params.name }}
+<div class="video-inspired-about">
+  <div class="about-container">
+    <div class="left-section">
+      <img src="/animation/banner.gif" alt="Banner" class="banner-image"></img>
     </div>
-    <div class="break-words">
-      {{ site.Params.bio | default (print `A personal blog by `
-      site.Params.name) }}
+
+    
+    <div class="right-section mobile-only">
+      Music. Blogs.
+      <div class="about-content">
+      {{ range .Site.Params.aboutItems }}
+      <div class="about-item">
+        <p class="about-text"><b>{{ .title }}: </b> {{ .description }}</p>
+      </div>
+      {{ end }}
+      </div>
     </div>
+
+    <div class="right-section tablet-only desktop-only">
+      <p>Welcome to my world wide web. Lets start with some music; and some blogs?</p>
+      <div class="about-content">
+      <table class="about-table">
+        {{ range .Site.Params.aboutItems }}
+        <tr class="about-item">
+          <th class="about-heading">{{ .title }}</th>
+          <td class="about-text">{{ .description }}</td>
+        </tr>
+        {{ end }}
+      </table>
+      </div>
+    </div>
+
   </div>
-  {{ end }}
 </div>
-{{ end }}<!---->
 
 {{ end }}
 

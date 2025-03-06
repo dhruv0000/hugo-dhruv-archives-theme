@@ -1,89 +1,54 @@
 {{ define "main" }}
 
-<!-- Tag Title -->
-{{ if and .Title (eq .Type "tags") }}
-<h1 class="mb-14">#{{ .Title }}</h1>
+<!-- Define $pages -->
+{{ $pages := union .RegularPages .Sections }}
+{{ if .IsHome }}
+  {{ $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{ end }}
 
-<!-- $pages -->
-{{ $pages := union .RegularPages .Sections }}<!---->
-{{ if .IsHome }}<!---->
-{{ $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}<!---->
-{{ end }}
+<!-- Define $paginator -->
+{{ $paginator := .Paginate $pages }}
 
-<!-- Articles -->
-{{ $paginator := .Paginate $pages }} {{ range $index, $page := $paginator.Pages
-}}<!---->
-
-<!-- avatar -->
-{{ if and $.IsHome (eq $paginator.PageNumber 1) (eq $index 0) }}<!---->
-
-<div class="video-inspired-about">
-  <div class="about-container flex flex-nowrap">
-    <div class="left-section" style="    margin-bottom: auto;">
-      <img src="/animation/banner.gif" alt="Banner" class="banner-image"></img>
-    </div>
-
-    <div class="right-section">
-    <div class="" style="padding-left: 2em; padding-top: 2em;">
-      <div class="about-content">
-        Welcome to my world wide web. Lets start with some <a href='/music'>music</a>; and <a href='/blog'>blogs</a>?
+<!-- Featured Section (Displayed on Home Page, First Page Only) -->
+{{ if and $.IsHome (eq $paginator.PageNumber 1) }}
+  <div class="featured-container">
+      <img src="/animation/banner.gif" alt="Banner" class="banner-image">
+      <p>Welcome to my world wide web. Let's start with some <a href='/music'>music</a> and <a href='/blog'>blogs</a>?</p>
+      
       {{ range .Site.Params.aboutItems }}
       <div class="about-item">
-        <p class="about-text"><b>{{ .title | safeHTML }} </b> {{ .description | safeHTML }}</p>
+        <p class="about-text"><b>{{ .title | safeHTML }}</b> {{ .description | safeHTML }}</p>
       </div>
       {{ end }}
-      </div>
     </div>
-
-    <!-- <div class="tablet-only desktop-only" style="
-    padding-left: 2em;
-    padding-top: 1em;">
-      <p>Welcome to my world wide web. Lets start with some <a href='/music'>music</a>; and <a href='/blog'>blogs</a>?</p>
-      <div class="about-content">
-      <table class="about-table">
-        {{ range .Site.Params.aboutItems }}
-        <tr class="about-item">
-          <th class="about-heading">{{ .title }}</th>
-          <td class="about-text">{{ .description }}</td>
-        </tr>
-        {{ end }}
-      </table>
-      </div>
-    </div>
-    </div> -->
-
   </div>
+
+{{ end }}
+
+<!-- List of Posts in Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-0">
+  {{ range $paginator.Pages }}
+  <section class="relative my-10 first-of-type:mt-0 last-of-type:mb-0">
+    {{ if gt .Weight 0 }}
+    <span class="mb-1 inline-block text-xs tracking-wider text-orange-500">Featured</span>
+    {{ end }}
+    <h2 class="!my-0">{{ .Title }}</h2>
+    <time class="text-xs antialiased opacity-60">{{ .Date | time.Format ":date_medium" }}</time>
+    <a class="absolute inset-0 text-[0]" href="{{ .Permalink }}">{{ .Title }}</a>
+  </section>
+  {{ end }}
 </div>
 
-{{ end }}
-
-<section class="relative my-10 first-of-type:mt-0 last-of-type:mb-0">
-  {{ if gt .Weight 0 }}
-  <span class="mb-1 inline-block text-xs tracking-wider text-orange-500"
-    >Featured</span
-  >
-  {{ end }}
-  <h2 class="!my-0">{{ .Title }}</h2>
-  <time class="text-xs antialiased opacity-60"
-    >{{ .Date | time.Format ":date_medium" }}</time
-  >
-  <a class="absolute inset-0 text-[0]" href="{{ .Permalink }}">{{ .Title }}</a>
-</section>
-{{ end }}
-
-<!-- Main Nav -->
+<!-- Pagination Navigation -->
 {{ if gt $paginator.TotalPages 1 }}
 <nav class="mt-14 flex">
   {{ if $paginator.HasPrev }}
   <a class="btn" href="{{ $paginator.Prev.URL }}">← {{ i18n "prev_page" }}</a>
-  {{ end }}<!---->
+  {{ end }}
   {{ if $paginator.HasNext }}
-  <a class="btn ml-auto" href="{{ $paginator.Next.URL }}"
-    >{{ i18n "next_page" }} →</a
-  >
+  <a class="btn ml-auto" href="{{ $paginator.Next.URL }}">{{ i18n "next_page" }} →</a>
   {{ end }}
 </nav>
-{{ end }}<!---->
+{{ end }}
 
 {{ end }}

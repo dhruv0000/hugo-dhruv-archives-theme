@@ -25,18 +25,18 @@
     </div>
 
     <div class="right-section">
-    <div class="mobile-only " style="padding-left: 2em; padding-top: 2em;">
+    <div class="" style="padding-left: 2em; padding-top: 2em;">
       <div class="about-content">
         Welcome to my world wide web. Lets start with some <a href='/music'>music</a>; and <a href='/blog'>blogs</a>?
       {{ range .Site.Params.aboutItems }}
       <div class="about-item">
-        <p class="about-text"><b>{{ .title }}: </b> {{ .description }}</p>
+        <p class="about-text"><b>{{ .title | safeHTML }} </b> {{ .description | safeHTML }}</p>
       </div>
       {{ end }}
       </div>
     </div>
 
-    <div class="tablet-only desktop-only" style="
+    <!-- <div class="tablet-only desktop-only" style="
     padding-left: 2em;
     padding-top: 1em;">
       <p>Welcome to my world wide web. Lets start with some <a href='/music'>music</a>; and <a href='/blog'>blogs</a>?</p>
@@ -51,7 +51,7 @@
       </table>
       </div>
     </div>
-    </div>
+    </div> -->
 
   </div>
 </div>

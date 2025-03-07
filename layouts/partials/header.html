@@ -41,7 +41,7 @@
 
       const btnDark = document.querySelector('.btn-dark');
       if (btnDark) {
-        btnDark.style.background = `url('button/${isDark ? 'dark' : 'bright'}.svg') center/cover no-repeat`;
+        btnDark.style.background = `url('button/${isDark ? 'dark-1' : 'bright-1'}.svg') center/cover no-repeat`;
       }
     };
 
@@ -59,12 +59,12 @@
 
     // listen system
     darkScheme.addEventListener('change', (event) => {
-      setDark(event.matches);
+      setDark(goingDark);
     });
 
     // manual switch
     const btnDark = document.querySelector('.btn-dark');
-    // btnDark.classList.add(!goingDark ? 'anim-dark' : 'anim-light');
+    btnDark.classList.add(!goingDark ? 'anim-dark' : 'anim-light');
 
     btnDark.addEventListener('click', () => {
       const goingDark = localStorage.getItem('dark') !== 'true';

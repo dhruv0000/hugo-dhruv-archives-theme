@@ -41,6 +41,10 @@
 >
   {{ partial "head.html" . }}
   <body class="text-black duration-200 ease-out dark:text-white">
+    <div class="loading-container justify-center items-center" id="loadingIndicator">
+      <div class="loading"></div>
+    </div>
+
     {{ partial "header.html" . }}
 
     <main
@@ -50,5 +54,11 @@
     </main>
 
     {{ partial "footer.html" . }}
+    <script>
+      // Optionally, remove the loading indicator once your page is loaded
+      window.addEventListener('load', function() {
+      document.getElementById('loadingIndicator').style.display = 'none';
+      });
+    </script>
   </body>
 </html>

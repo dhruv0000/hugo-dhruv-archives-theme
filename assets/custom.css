@@ -43,8 +43,8 @@
   .list-posts {
     clear: both; /* Ensure it starts below any floated elements */
     padding-top: 1.25em;
-    border-top-color: #374151; /* Darker border in dark mode */
-    border-top: 0.1em solid #374151; /* Light gray border in light mode */
+    border-top-color: #404040; /* Darker border in dark mode */
+    border-top: 0.1em solid #404040; /* Light gray border in light mode */
   }
 
 /* Responsive image sizing for portrait and landscape */

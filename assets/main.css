@@ -1491,7 +1491,12 @@ pre {
 }
 
 .text-2xl {
-  font-size: xx-large;
+  font-size: 1.5rem;
+}
+@media screen and (min-width: 450px) {
+  .text-2xl {
+    font-size: 2rem;
+  }
 }
 
 .text-9xl {

@@ -47,7 +47,6 @@
     border-top: 0.1em solid #374151; /* Light gray border in light mode */
   }
 
-
 /* Responsive image sizing for portrait and landscape */
 
 @media (max-width: 768px) {

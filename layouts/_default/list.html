@@ -16,7 +16,9 @@
     <!-- Random GIF Banner -->
     {{ $isMobile := `@media (max-width: 768px) { #landscape { display: none; } #portrait { display: block; } }
                      @media (min-width: 769px) { #landscape { display: block; } #portrait { display: none; } }` }}
-    <style>{{ $isMobile | safeCSS }}</style>
+                     
+    <link rel="stylesheet" href="data:text/css;base64,{{ $isMobile | base64Encode }}" media="screen">
+
     
     {{ $portraitDir := "/animation/golden-landscape/" }}
     {{ $landscapeDir := "/animation/golden-portrait/" }}

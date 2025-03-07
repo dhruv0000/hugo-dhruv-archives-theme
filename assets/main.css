@@ -76,6 +76,7 @@ body {
   /* 2 */
   font-family: 'Noto Sans', sans-serif;
   /* 3 */
+  text-align: justify;
 }
 
 /*
@@ -1630,6 +1631,7 @@ article {
   font-size: 1.125rem;
   line-height: 1.75rem;
   line-height: 1.8;
+  text-align: justify;
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity));
 }

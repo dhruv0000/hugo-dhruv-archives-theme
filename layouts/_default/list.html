@@ -11,22 +11,130 @@
 
 <!-- Featured Section (Displayed on Home Page, First Page Only) -->
 {{ if and $.IsHome (eq $paginator.PageNumber 1) }}
-  <div class="featured-container">
-      <img src="/animation/banner.gif" alt="Banner" class="banner-image">
-      <p>Welcome to my world wide web. Let's start with some <a href='/music'>music</a> and <a href='/blog'>blogs</a>?</p>
-      
-      {{ range .Site.Params.aboutItems }}
-      <div class="about-item">
-        <p class="about-text"><b>{{ .title | safeHTML }}</b> {{ .description | safeHTML }}</p>
-      </div>
+  <div class="featured-container w-full mb-16">
+    
+    <!-- Random GIF Banner -->
+    {{ $isMobile := `@media (max-width: 768px) { #landscape { display: none; } #portrait { display: block; } }
+                     @media (min-width: 769px) { #landscape { display: block; } #portrait { display: none; } }` }}
+    <style>{{ $isMobile | safeCSS }}</style>
+    
+    {{ $portraitDir := "/animation/golden-landscape/" }}
+    {{ $landscapeDir := "/animation/golden-portrait/" }}
+    {{ $portraitFiles := readDir (printf "static%s" $portraitDir) }}
+    {{ $landscapeFiles := readDir (printf "static%s" $landscapeDir) }}
+    
+    
+    {{ $portraitDarkGifs := slice }}
+    {{ $portraitBrightGifs := slice }}
+    {{ range $portraitFiles }}
+      {{ if findRE "\\.gif$" .Name }}
+      {{ if strings.HasSuffix .Name "-dark.gif" }}
+        {{ $portraitDarkGifs = $portraitDarkGifs | append .Name }}
+        {{ warnf "Added portrait dark GIF: %s" .Name }}
+      {{ else if strings.HasSuffix .Name "-bright.gif" }}
+        {{ $portraitBrightGifs = $portraitBrightGifs | append .Name }}
+        {{ warnf "Added portrait bright GIF: %s" .Name }}
+      {{ else }}
+        {{ $portraitDarkGifs = $portraitDarkGifs | append .Name }}
+        {{ warnf "Added portrait bright GIF: %s" .Name }}
       {{ end }}
-    </div>
-  </div>
+      {{ end }}
+    {{ end }}
 
+    {{ $landscapeDarkGifs := slice }}
+    {{ $landscapeBrightGifs := slice }}
+    {{ range $landscapeFiles }}
+      {{ if findRE "\\.gif$" .Name }}
+      {{ if strings.HasSuffix .Name "-dark.gif" }}
+        {{ $landscapeDarkGifs = $landscapeDarkGifs | append .Name }}
+        {{ warnf "Added landscape dark GIF: %s" .Name }}
+      {{ else if strings.HasSuffix .Name "-bright.gif" }}
+        {{ $landscapeBrightGifs = $landscapeBrightGifs | append .Name }}
+        {{ warnf "Added landscape bright GIF: %s" .Name }}
+      {{ else }}
+        {{ $landscapeDarkGifs = $landscapeDarkGifs | append .Name }}
+        {{ warnf "Added portrait bright GIF: %s" .Name }}
+      {{ end }}
+      {{ end }}
+    {{ end }}
+    
+    {{ $landscapeGifs := slice }}
+    {{ $portraitGifs := slice }}
+      {{ $portraitGifs = $portraitDarkGifs }}
+      {{ $landscapeGifs = $landscapeDarkGifs }}
+      {{ $portraitGifs = $portraitGifs | append $portraitBrightGifs }}
+      {{ $landscapeGifs = $landscapeGifs | append $landscapeBrightGifs }}
+     
+     {{ warnf "Portrait GIFs: %s" $portraitGifs }}
+     {{ warnf "Landscape GIFs: %s" $landscapeGifs }}
+    
+    
+    {{ if and (gt (len $portraitGifs) 0) (gt (len $landscapeGifs) 0) }}
+      {{ $randomPortraitIndex := now.UnixNano | mod (len $portraitGifs) }}
+      {{ $randomLandscapeIndex := now.UnixNano | mod (len $landscapeGifs) }}
+      {{ $initialPortraitGif := index $portraitGifs $randomPortraitIndex }}
+      {{ $initialLandscapeGif := index $landscapeGifs $randomLandscapeIndex }}
+      
+      <div id="portrait" data-gifs='{{ $portraitGifs | jsonify }}' data-path="{{ $portraitDir }}">
+        <img src="{{ $portraitDir }}{{ $initialPortraitGif }}" alt="Banner" class="banner-image" id="random-portrait-gif">
+      </div>
+      <div id="landscape" data-gifs='{{ $landscapeGifs | jsonify }}' data-path="{{ $landscapeDir }}">
+        <img src="{{ $landscapeDir }}{{ $initialLandscapeGif }}" alt="Banner" class="banner-image" id="random-landscape-gif">
+      </div>
+      
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const isDarkMode = document.documentElement.classList.contains('dark');
+          
+          const portraitContainer = document.getElementById('portrait');
+          const portraitImg = document.getElementById('random-portrait-gif');
+          const portraitGifs = JSON.parse(portraitContainer.dataset.gifs);
+          const portraitPath = portraitContainer.dataset.path;
+          
+          const landscapeContainer = document.getElementById('landscape');
+          const landscapeImg = document.getElementById('random-landscape-gif');
+          const landscapeGifs = JSON.parse(landscapeContainer.dataset.gifs);
+          const landscapePath = landscapeContainer.dataset.path;
+          
+          // Filtering GIFs by dark mode:
+          let filteredPortraitGifs = portraitGifs.filter(gif => {
+            if (gif.endsWith('-dark.gif') && !isDarkMode) return false;
+            if (gif.endsWith('-bright.gif') && isDarkMode) return false;
+            return true;
+          });
+          if (filteredPortraitGifs.length === 0) filteredPortraitGifs = portraitGifs;
+          const randomPortraitGif = filteredPortraitGifs[Math.floor(Math.random() * filteredPortraitGifs.length)];
+          portraitImg.src = portraitPath + randomPortraitGif;
+          
+          let filteredLandscapeGifs = landscapeGifs.filter(gif => {
+            if (gif.endsWith('-dark.gif') && !isDarkMode) return false;
+            if (gif.endsWith('-bright.gif') && isDarkMode) return false;
+            return true;
+          });
+          if (filteredLandscapeGifs.length === 0) filteredLandscapeGifs = landscapeGifs;
+          const randomLandscapeGif = filteredLandscapeGifs[Math.floor(Math.random() * filteredLandscapeGifs.length)];
+          landscapeImg.src = landscapePath + randomLandscapeGif;
+        });
+      </script>
+    {{ else }}
+      <!-- <img src="/animation/banner.gif" alt="Banner" class="banner-image"> -->
+    {{ end }}
+    
+    <p>Welcome to my world wide web. Let's start with some <a href='/music'>music</a> and <a href='/blog'>blogs</a>?</p>
+    
+    {{ range .Site.Params.aboutItems }}
+    <div class="about-item">
+      <p class="about-text"><b>{{ .title | safeHTML }}</b> {{ .description | safeHTML }}</p>
+    </div>
+    {{ end }}
+  </div>
+  
+  <div class="section-divider w-full border-t border-gray-200 dark:border-gray-700 my-8"></div>
 {{ end }}
 
+
 <!-- List of Posts in Grid Layout -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-0">
+<div class="list-posts w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
   {{ range $paginator.Pages }}
   <section class="relative my-10 first-of-type:mt-0 last-of-type:mb-0">
     {{ if gt .Weight 0 }}

@@ -13,11 +13,65 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
   }
 
-  .featured-container img {
-    float:left;
+  .featured-container {
+    position: relative;
     display: block;
-    margin: 0 2em 2em 0;
-    shape-outside: url(https://github.com/dhruv0000/dhruv-archives/blob/main/static/animation/banner.gif?raw=true);
+    width: 100%;
+    margin-bottom: 2em;
+    overflow: hidden; /* Contain floated children */
+  }
+
+  .featured-container::after {
+    content: "";
+    display: block;
+    clear: both; /* Clear the float */
+  }
+
+  .featured-container img {
+    float: left;
+    display: block;
+  }
+
+
+  .dark .list-posts {
+    clear: both; /* Ensure it starts below any floated elements */
+    padding-top: 1.5em;
+    border-top: 0.1em solid #e5e7eb; /* Light gray border in light mode */
+  }
+
+
+  .list-posts {
+    clear: both; /* Ensure it starts below any floated elements */
+    padding-top: 1.25em;
+    border-top-color: #374151; /* Darker border in dark mode */
+    border-top: 0.1em solid #374151; /* Light gray border in light mode */
+  }
+
+
+/* Responsive image sizing for portrait and landscape */
+
+@media (max-width: 768px) {
+  #portrait img {
+    max-width: 100%;
+  }
+  #portrait {
+    text-align: center;
+  }
+  .featured-container img {
+    margin: 0 0 1em 0;
+  }
+}
+
+@media (min-width: 769px) {
+  #portrait img, #landscape img {
+    max-width: 15em;
+  }
+
+  .featured-container img {
+    margin-bottom: 1.25em;
+    margin-top: 1.25em;
+    margin-right: 1.25em;
+  }
 }
 
 .info-box table {
@@ -30,4 +84,3 @@
     padding: 4px; /* Small padding for readability, keeping it compact like code */
     text-align: left; /* Left-aligned text, common in code outputs */
 }
-  

@@ -3,12 +3,6 @@
     <a class="-translate-y-[1px] text-2xl font-medium custom-header-title" href="{{ `` | absURL }}"
       >{{ site.Title }}</a
     >
-    <!-- <div
-      class="btn-dark text-[0] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer {{ if site.Params.monoDarkIcon }}[background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert{{ else }}[background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)]{{ end }} dark:[background-position:right]"
-      role="button"
-      aria-label="Dark"
-      style="background: url('button/bright.svg') center/cover no-repeat"
-    ></div> -->
     <div
       class="btn-dark text-[0] ltr:ml-4 rtl:mr-4 h-button w-button shrink-0 cursor-pointer"
       role="button"
@@ -68,7 +62,7 @@
 
     // manual switch
     const btnDark = document.querySelector('.btn-dark');
-    btnDark.classList.add(!goingDark ? 'anim-dark' : 'anim-light');
+    // btnDark.classList.add(!goingDark ? 'anim-dark' : 'anim-light');
 
     btnDark.addEventListener('click', () => {
       const goingDark = localStorage.getItem('dark') !== 'true';

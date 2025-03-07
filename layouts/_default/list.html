@@ -58,39 +58,49 @@
       </div>
       
       <script>
-        setBannerGif = () => {
-          const isDarkMode = document.documentElement.classList.contains('dark');
+        document.addEventListener('DOMContentLoaded', function() {
+          function updateGifs() {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            
+            const portraitContainer = document.getElementById('portrait');
+            const portraitImg = document.getElementById('random-portrait-gif');
+            const portraitGifs = JSON.parse(portraitContainer.dataset.gifs);
+            const portraitPath = portraitContainer.dataset.path;
+            
+            const landscapeContainer = document.getElementById('landscape');
+            const landscapeImg = document.getElementById('random-landscape-gif');
+            const landscapeGifs = JSON.parse(landscapeContainer.dataset.gifs);
+            const landscapePath = landscapeContainer.dataset.path;
+            
+            // Filtering GIFs by dark mode:
+            let filteredPortraitGifs = portraitGifs.filter(gif => {
+              if (gif.endsWith('-dark.gif') && !isDarkMode) return false;
+              if (gif.endsWith('-bright.gif') && isDarkMode) return false;
+              return true;
+            });
+            if (filteredPortraitGifs.length === 0) filteredPortraitGifs = portraitGifs;
+            const randomPortraitGif = filteredPortraitGifs[Math.floor(Math.random() * filteredPortraitGifs.length)];
+            portraitImg.src = portraitPath + randomPortraitGif;
+            
+            let filteredLandscapeGifs = landscapeGifs.filter(gif => {
+              if (gif.endsWith('-dark.gif') && !isDarkMode) return false;
+              if (gif.endsWith('-bright.gif') && isDarkMode) return false;
+              return true;
+            });
+            if (filteredLandscapeGifs.length === 0) filteredLandscapeGifs = landscapeGifs;
+            const randomLandscapeGif = filteredLandscapeGifs[Math.floor(Math.random() * filteredLandscapeGifs.length)];
+            landscapeImg.src = landscapePath + randomLandscapeGif;
+          }
           
-          const portraitContainer = document.getElementById('portrait');
-          const portraitImg = document.getElementById('random-portrait-gif');
-          const portraitGifs = JSON.parse(portraitContainer.dataset.gifs);
-          const portraitPath = portraitContainer.dataset.path;
+          // Run once when DOM is loaded.
+          updateGifs();
           
-          const landscapeContainer = document.getElementById('landscape');
-          const landscapeImg = document.getElementById('random-landscape-gif');
-          const landscapeGifs = JSON.parse(landscapeContainer.dataset.gifs);
-          const landscapePath = landscapeContainer.dataset.path;
-          
-          // Filtering GIFs by dark mode:
-          let filteredPortraitGifs = portraitGifs.filter(gif => {
-            if (gif.endsWith('-dark.gif') && !isDarkMode) return false;
-            if (gif.endsWith('-bright.gif') && isDarkMode) return false;
-            return true;
+          // Re-run updateGifs() when dark mode changes.
+          const observer = new MutationObserver(() => {
+            updateGifs();
           });
-          if (filteredPortraitGifs.length === 0) filteredPortraitGifs = portraitGifs;
-          const randomPortraitGif = filteredPortraitGifs[Math.floor(Math.random() * filteredPortraitGifs.length)];
-          portraitImg.src = portraitPath + randomPortraitGif;
-          
-          let filteredLandscapeGifs = landscapeGifs.filter(gif => {
-            if (gif.endsWith('-dark.gif') && !isDarkMode) return false;
-            if (gif.endsWith('-bright.gif') && isDarkMode) return false;
-            return true;
-          });
-          if (filteredLandscapeGifs.length === 0) filteredLandscapeGifs = landscapeGifs;
-          const randomLandscapeGif = filteredLandscapeGifs[Math.floor(Math.random() * filteredLandscapeGifs.length)];
-          landscapeImg.src = landscapePath + randomLandscapeGif;
-        }
-        window.addEventListener('load', setBannerGif);
+          observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        });
       </script>
     
     {{ end }}

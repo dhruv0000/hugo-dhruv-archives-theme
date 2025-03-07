@@ -2,7 +2,7 @@
 <div align="center">
 <h1>Hugo theme for Dhruv Archives </h1>
 
-A Hugo theme for dhruv-archives.com (snake-case) or dhruvArchives.com (camelCase), built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper).
+A Hugo theme for [dhruv-archives.com](https://github.com/dhruv0000/dhruv-archives) (snake-case) or [dhruvArchives.com](https://github.com/dhruv0000/dhruv-archives) (camelCase), built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper).
 
 </div>
 ---

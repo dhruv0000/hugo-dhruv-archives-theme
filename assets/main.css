@@ -1755,7 +1755,6 @@ article .highlight {
   62.5%  { background-image: url("/button/bright-3.svg"); opacity: 1; }
   75%  { background-image: url("/button/bright-2.svg"); opacity: 1; }
   87.5%  { background-image: url("/button/bright-1.svg"); opacity: 1; }
-  100% { background-image: url("/button/bright-1.svg"); opacity: 1; } /* Prevent flicker */
 }
 
 .btn-dark {
@@ -1768,12 +1767,12 @@ article .highlight {
 
 /* For example, if you add a class "anim-dark" in JS: */
 .btn-dark.anim-dark {
-  animation: darkModeTransition 3s ease-in-out forwards;
+  animation: darkModeTransition 2s ease-in-out forwards;
 }
 
 /* And "anim-light" for the reverse: */
 .btn-dark.anim-light {
-  animation: lightModeTransition 3s ease-in-out forwards;
+  animation: lightModeTransition 2s ease-in-out forwards;
 }
 
 /* .\[transition\:_background-position_0\.4s_steps\(5\)\] {

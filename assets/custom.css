@@ -107,3 +107,54 @@
   background-size: contain;
   background-repeat: no-repeat;
 }
+
+/* Tailwind CSS with custom animation */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  @keyframes fadeSequence {
+    0% {
+      opacity: 1;  /* dark-1 visible */
+    }
+    12.5% {
+      opacity: 0.75;
+    }
+    25% {
+      opacity: 0.5;  /* dark-2 transition */
+    }
+    37.5% {
+      opacity: 0.25;
+    }
+    50% {
+      opacity: 0;    /* dark-4 fades out */
+    }
+    62.5% {
+      opacity: 0.25; /* bright-4 fades in */
+    }
+    75% {
+      opacity: 0.5;
+    }
+    87.5% {
+      opacity: 0.75;
+    }
+    100% {
+      opacity: 1;    /* bright-1 fully visible */
+    }
+  }
+
+  .animate-fade-button {
+    animation: fadeSequence 4s infinite;
+  }
+
+  /* Ensure only one image is visible at a time */
+  button img:nth-child(1) { animation-delay: 0s; }    /* dark-1 */
+  button img:nth-child(2) { animation-delay: 0.5s; }  /* dark-2 */
+  button img:nth-child(3) { animation-delay: 1s; }    /* dark-3 */
+  button img:nth-child(4) { animation-delay: 1.5s; }  /* dark-4 */
+  button img:nth-child(5) { animation-delay: 2s; }    /* bright-4 */
+  button img:nth-child(6) { animation-delay: 2.5s; }  /* bright-3 */
+  button img:nth-child(7) { animation-delay: 3s; }    /* bright-2 */
+  button img:nth-child(8) { animation-delay: 3.5s; }  /* bright-1 */
+}

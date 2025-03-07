@@ -16,7 +16,7 @@
     <!-- Random GIF Banner -->
     {{ $isMobile := `@media (max-width: 768px) { #landscape { display: none; } #portrait { display: block; } }
                      @media (min-width: 769px) { #landscape { display: block; } #portrait { display: none; } }` }}
-                     
+
     <link rel="stylesheet" href="data:text/css;base64,{{ $isMobile | base64Encode }}" media="screen">
 
     
@@ -26,47 +26,20 @@
     {{ $landscapeFiles := readDir (printf "static%s" $landscapeDir) }}
     
     
-    {{ $portraitDarkGifs := slice }}
+    {{ $portraitGifs := slice }}
     {{ $portraitBrightGifs := slice }}
     {{ range $portraitFiles }}
-      {{ if findRE "\\.gif$" .Name }}
-      {{ if strings.HasSuffix .Name "-dark.gif" }}
-        {{ $portraitDarkGifs = $portraitDarkGifs | append .Name }}
-        {{ warnf "Added portrait dark GIF: %s" .Name }}
-      {{ else if strings.HasSuffix .Name "-bright.gif" }}
-        {{ $portraitBrightGifs = $portraitBrightGifs | append .Name }}
-        {{ warnf "Added portrait bright GIF: %s" .Name }}
-      {{ else }}
-        {{ $portraitDarkGifs = $portraitDarkGifs | append .Name }}
-        {{ warnf "Added portrait bright GIF: %s" .Name }}
-      {{ end }}
-      {{ end }}
+        {{ $portraitGifs = $portraitGifs | append .Name }}
+        {{ warnf "Added portrait GIF: %s" .Name }}
     {{ end }}
 
-    {{ $landscapeDarkGifs := slice }}
-    {{ $landscapeBrightGifs := slice }}
+    {{ $landscapeGifs := slice }}
+    {{ $portraitBrightGifs := slice }}
     {{ range $landscapeFiles }}
-      {{ if findRE "\\.gif$" .Name }}
-      {{ if strings.HasSuffix .Name "-dark.gif" }}
-        {{ $landscapeDarkGifs = $landscapeDarkGifs | append .Name }}
-        {{ warnf "Added landscape dark GIF: %s" .Name }}
-      {{ else if strings.HasSuffix .Name "-bright.gif" }}
-        {{ $landscapeBrightGifs = $landscapeBrightGifs | append .Name }}
-        {{ warnf "Added landscape bright GIF: %s" .Name }}
-      {{ else }}
-        {{ $landscapeDarkGifs = $landscapeDarkGifs | append .Name }}
-        {{ warnf "Added portrait bright GIF: %s" .Name }}
-      {{ end }}
-      {{ end }}
+        {{ $landscapeGifs = $landscapeGifs | append .Name }}
+        {{ warnf "Added landscape GIF: %s" .Name }}
     {{ end }}
     
-    {{ $landscapeGifs := slice }}
-    {{ $portraitGifs := slice }}
-      {{ $portraitGifs = $portraitDarkGifs }}
-      {{ $landscapeGifs = $landscapeDarkGifs }}
-      {{ $portraitGifs = $portraitGifs | append $portraitBrightGifs }}
-      {{ $landscapeGifs = $landscapeGifs | append $landscapeBrightGifs }}
-     
      {{ warnf "Portrait GIFs: %s" $portraitGifs }}
      {{ warnf "Landscape GIFs: %s" $landscapeGifs }}
     

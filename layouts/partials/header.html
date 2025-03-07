@@ -49,7 +49,9 @@
     const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
     const goingDark = localStorage.getItem('dark') !== 'true';
     if (htmlClass.contains('dark')) {
-      setDark(true);
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+
     } else {
       const darkVal = localStorage.getItem('dark');
       setDark(darkVal ? darkVal === 'true' : darkScheme.matches);

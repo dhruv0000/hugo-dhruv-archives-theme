@@ -1733,19 +1733,27 @@ article .highlight {
 }
 
 @keyframes darkModeTransition {
-  0%   { background-image: url("/button/bright.svg"); opacity: 1; }
-  25%  { background-image: url("/button/bright-2.svg"); opacity: 1; }
-  50%  { background-image: url("/button/dark-2.svg"); opacity: 1; }
-  75%  { background-image: url("/button/dark.svg"); opacity: 1; }
-  100% { background-image: url("/button/dark.svg"); opacity: 1; }
+  0%   { background-image: url("/button/bright-1.svg"); opacity: 1; }
+  12.5%  { background-image: url("/button/bright-2.svg"); opacity: 1; }
+  25%  { background-image: url("/button/bright-3.svg"); opacity: 1; }
+  37.5%  { background-image: url("/button/bright-4.svg"); opacity: 1; }
+  50%  { background-image: url("/button/dark-4.svg"); opacity: 1; }
+  62.5%  { background-image: url("/button/dark-3.svg"); opacity: 1; }
+  75%  { background-image: url("/button/dark-2.svg"); opacity: 1; }
+  87.5%  { background-image: url("/button/dark-1.svg"); opacity: 1; }
+  100% { background-image: url("/button/dark-1.svg"); opacity: 1; } /* Prevent flicker */
 }
 
 @keyframes lightModeTransition {
-  0%   { background-image: url("/button/dark.svg"); opacity: 1; }
-  25%  { background-image: url("/button/dark-2.svg"); opacity: 1; }
-  50%  { background-image: url("/button/bright-2.svg"); opacity: 1; }
-  75%  { background-image: url("/button/bright.svg"); opacity: 1; }
-  100% { background-image: url("/button/bright.svg"); opacity: 1; }
+  0%   { background-image: url("/button/dark-1.svg"); opacity: 1; }
+  12.5%  { background-image: url("/button/dark-2.svg"); opacity: 1; }
+  25%  { background-image: url("/button/dark-3.svg"); opacity: 1; }
+  37.5%  { background-image: url("/button/dark-4.svg"); opacity: 1; }
+  50%  { background-image: url("/button/bright-4.svg"); opacity: 1; }
+  62.5%  { background-image: url("/button/bright-3.svg"); opacity: 1; }
+  75%  { background-image: url("/button/bright-2.svg"); opacity: 1; }
+  87.5%  { background-image: url("/button/bright-1.svg"); opacity: 1; }
+  100% { background-image: url("/button/bright-1.svg"); opacity: 1; } /* Prevent flicker */
 }
 
 .btn-dark {

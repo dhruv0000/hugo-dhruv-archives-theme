@@ -154,3 +154,8 @@
   button img:nth-child(7) { animation-delay: 3s; }    /* bright-2 */
   button img:nth-child(8) { animation-delay: 3.5s; }  /* bright-1 */
 }
+
+.dark header,
+.dark body {
+  background-color: #7fb386;
+}

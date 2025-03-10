@@ -30,6 +30,8 @@
     name="description"
     content="{{ site.Params.description | default (print `A personal blog`) }}"
   />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';">
+
   <meta name="author" content="{{ $site_author }}" />
   {{ end }}
 

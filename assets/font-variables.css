@@ -1,0 +1,17 @@
+:root {
+  --heading-font: '{{ .Site.Params.heading_font }}', serif;
+  --heading-weight: {{ .Site.Params.heading_font_weight }};
+  --body-font: '{{ .Site.Params.body_font }}', sans-serif;
+  --body-weight: {{ .Site.Params.body_font_weight }};
+}
+
+/* Apply font variables */
+body {
+  font-family: var(--body-font);
+  font-weight: var(--body-weight);
+}
+
+header, h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font), serif;
+  font-weight: var(--heading-weight) !important;
+}

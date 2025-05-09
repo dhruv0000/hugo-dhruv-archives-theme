@@ -54,7 +54,7 @@ html,
   -o-tab-size: 4;
      tab-size: 4;
   /* 3 */
-  /* font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
+  /* font-family is now set through CSS variables */
   /* 4 */
   font-feature-settings: normal;
   /* 5 */
@@ -74,7 +74,7 @@ body {
   /* 1 */
   line-height: inherit;
   /* 2 */
-  font-family: 'Noto Sans', sans-serif;
+  /* font-family is now set through CSS variables */
   /* 3 */
   text-align: justify;
 }
@@ -107,7 +107,8 @@ abbr:where([title]) {
 Remove the default font size and weight for headings.
 */
 header {
-  font-family: 'Jersey 15', serif;
+  /* font-family is now set through CSS variables */
+  /* font-weight is now set through CSS variables */
   font-weight: 400 !important;
 }
 
@@ -122,7 +123,8 @@ h6 {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Jersey 15', serif;
+  /* font-family is now set through CSS variables */
+  /* font-weight is now set through CSS variables */
   font-weight: 400 !important;
 }
 

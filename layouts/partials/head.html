@@ -37,11 +37,13 @@
   {{ $main := resources.Get "main.css" }}
   <!---->
   {{ $custom := resources.Get "custom.css" }}
+  {{ $fontVars := resources.Get "font-variables.css" | resources.ExecuteAsTemplate "font-variables-compiled.css" . }}
   {{ $screenIf := resources.Get "/css/screen-if.css" }}
 
   <!---->
-  {{ $css := slice $main $custom $screenIf | resources.Concat "main.css" | minify }}
+  {{ $css := slice $main $custom $fontVars $screenIf | resources.Concat "main.css" | minify }}
   <link rel="preload stylesheet" as="style" href="{{ $css.Permalink }}" />
+  
   <!-- dark icon -->
   {{ $dark_icon := "theme.png" }}
   <!---->

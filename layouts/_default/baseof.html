@@ -7,9 +7,14 @@
 <!-- bg_color -->
 {{ $color_map := dict "linen" "#faf8f1" "wheat" "#f8f5d7" "gray" "#fbfbfb"
 "light" "#fff" }}<!---->
+{{ $dark_color_map := dict "linen" "#131b14" "wheat" "#374151" "gray" "#1f2937"
+"light" "#111827" }}<!---->
 {{ $.Scratch.Set "bg_color" (index $color_map (site.Params.color | default
 (print "linen"))) }}<!---->
+{{ $.Scratch.Set "dark_bg_color" (index $dark_color_map (site.Params.color | default
+(print "linen"))) }}<!---->
 {{ $bg_color := $.Scratch.Get "bg_color" }}<!---->
+{{ $dark_bg_color := $.Scratch.Get "dark_bg_color" }}<!---->
 
 <!-- social_list -->
 {{ $social_params := slice "twitter" "github" "instagram" "linkedin" "mastodon"
@@ -35,7 +40,7 @@
 
 <html
   class="not-ready lg:text-base"
-  style="--bg: {{ $bg_color }}"
+  style="--bg: {{ $bg_color }}; --dark-bg: {{ $dark_bg_color }}"
   lang="{{ or site.LanguageCode site.Language.Lang }}"
   dir="{{ if site.Params.direction }}{{ site.Params.direction }}{{ else }}ltr{{ end }}"
 >

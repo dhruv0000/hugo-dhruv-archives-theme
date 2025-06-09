@@ -1,8 +1,9 @@
 :root {
   --heading-font: '{{ .Site.Params.heading_font }}', serif;
-  --heading-weight: {{ .Site.Params.heading_font_weight }};
+  --heading-weight: '{{ .Site.Params.heading_weight }}';
   --body-font: '{{ .Site.Params.body_font }}', sans-serif;
-  --body-weight: {{ .Site.Params.body_font_weight }};
+  --body-weight: {{ .Site.Params.body_weight }};
+  --body-h-weight: {{ .Site.Params.body_h_weight }};
 }
 
 /* Apply font variables */
@@ -11,7 +12,34 @@ body {
   font-weight: var(--body-weight);
 }
 
-header, h1, h2, h3, h4, h5, h6 {
-  font-family: var(--heading-font), serif;
+/* Apply heading font only to site title and main menu */
+.custom-header-title,
+.custom-header-nav {
+  font-family: var(--heading-font);
   font-weight: var(--heading-weight) !important;
+  /* TO-DO: Add as var to theme hugo (heading) */
+  color: black;
+  .dark & {
+    color: #FAF3DD; /* Light gray in dark mode */
+  }
+}
+
+.article-header {
+  font-family: var(--body_font);
+  padding-top: 0.5em;
+  font-weight: 700;
+}
+
+.article-section {
+  padding-top: 1.5em;
+}
+
+
+
+img:not(.no-style):not([id*="landscape"]):not([id*="portrait"]) {
+  max-width: 90%;
+  height: auto;
+  margin: auto;
+  padding: 1rem;
+  border-radius: 1.5rem;
 }

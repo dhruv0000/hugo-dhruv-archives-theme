@@ -30,21 +30,22 @@
   .featured-container img {
     float: left;
     display: block;
+    border-radius: 1cap;
   }
 
 
   .dark .list-posts {
     clear: both; /* Ensure it starts below any floated elements */
     padding-top: 1.5em;
-    border-top: 0.1em solid #e5e7eb; /* Light gray border in light mode */
+    
+    /* TO-DO: Add Headding tag */
+    border-top: 0.4em solid #FAF3DD; /* Light gray border in light mode, 30% translucent */
   }
-
 
   .list-posts {
     clear: both; /* Ensure it starts below any floated elements */
     padding-top: 1.25em;
-    border-top-color: #404040; /* Darker border in dark mode */
-    border-top: 0.1em solid #404040; /* Light gray border in light mode */
+    border-top: 0.4em solid #273d3c; /* Light gray border in light mode */
   }
 
 /* Responsive image sizing for portrait and landscape */
@@ -69,20 +70,10 @@
   .featured-container img {
     margin-bottom: 1.25em;
     margin-top: 1.25em;
-    margin-right: 2em;s
+    margin-right: 2em;
   }
 }
 
-.info-box table {
-    border-style: dashed;
-    width: 100%; /* Ensures the table spans its container */
-}
-
-.info-box th, .info-box td {
-    border: 0.5em #000; /* Dashed borders to mimic the "---" appearance */
-    padding: 4px; /* Small padding for readability, keeping it compact like code */
-    text-align: left; /* Left-aligned text, common in code outputs */
-}
 
 /* Loading div in baseof.html */
 /* filepath: /Users/siren/project/dhruv-archives/themes/hugo-dhruv-archives/assets/custom.css */
@@ -153,9 +144,4 @@
   button img:nth-child(6) { animation-delay: 2.5s; }  /* bright-3 */
   button img:nth-child(7) { animation-delay: 3s; }    /* bright-2 */
   button img:nth-child(8) { animation-delay: 3.5s; }  /* bright-1 */
-}
-
-.dark header,
-.dark body {
-  background-color: #7fb386;
 }

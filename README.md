@@ -41,7 +41,7 @@ Available options to `config.toml` or `hugo.toml`:
 
 [params]
   # color style
-  color = 'linen'                           # linen, wheat, gray, light
+  color = 'grey'                           # linen, wheat, gray, light
 
   # header social icons
   twitter = 'YOUR_TWITTER_ID'               # twitter.com/YOUR_TWITTER_ID

@@ -16,7 +16,7 @@
 
   body {
     @apply bg-[--bg] antialiased [-webkit-tap-highlight-color:transparent] font-['Roboto',_sans-serif];
-    @apply dark:before:fixed dark:before:inset-0 dark:before:bg-black/85;
+    @apply dark:before:fixed dark:before:inset-0 dark:before:bg-slate-800/95;
   }
 
 

@@ -45,7 +45,7 @@
   .list-posts {
     clear: both; /* Ensure it starts below any floated elements */
     padding-top: 1.25em;
-    border-top: 0.4em solid #273d3c; /* Light gray border in light mode */
+    border-top: 0.4em solid #404040; /* Light gray border in light mode */
   }
 
 /* Responsive image sizing for portrait and landscape */

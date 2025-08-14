@@ -1220,7 +1220,7 @@ pre {
 }
 
 .top-0 {
-  top: 0px;
+  top: 0px !important;
 }
 
 .top-full {
@@ -1238,6 +1238,8 @@ pre {
 .\!my-0 {
   margin-top: 0px !important;
   margin-bottom: 0px !important;
+  font-family: var(--heading-font);
+  font-weight: var(--heading-weight) !important;
 }
 
 .mx-1 {

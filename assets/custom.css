@@ -27,7 +27,7 @@
     clear: both; /* Clear the float */
   }
 
-  .featured-container img {
+  .featured-container .banner-media {
     float: left;
     display: block;
     border-radius: 1cap;
@@ -51,26 +51,32 @@
 /* Responsive image sizing for portrait and landscape */
 
 @media (max-width: 768px) {
-  #portrait img {
+  #portrait .banner-media {
     max-width: 100%;
   }
   #portrait {
     text-align: center;
   }
-  .featured-container img {
+  .featured-container .banner-media {
     margin: 0 0 1em 0;
   }
 }
 
 @media (min-width: 769px) {
-  #portrait img, #landscape img {
+  #portrait .banner-media {
     max-width: 15em;
   }
 
-  .featured-container img {
+  .featured-container .banner-media {
     margin-bottom: 1.25em;
     margin-top: 1.25em;
     margin-right: 2em;
+  }
+
+  #landscape .banner-media {
+    max-width: 100%;
+    float: none;
+    margin-right: 0;
   }
 }
 

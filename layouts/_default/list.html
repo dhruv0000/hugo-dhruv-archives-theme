@@ -8,8 +8,8 @@
 <!-- Define $pages -->
 {{ $pages := union .RegularPages .Sections }}
 {{ if .IsHome }}
-  {{ $pages = where site.RegularPages "Type" "in" .Site.Params.mainSections }}
-  </pre>
+{{ $pages = where site.RegularPages "Type" "in" .Site.Params.mainSections }}
+</pre>
 {{ end }}
 
 <!-- Define $paginator -->
@@ -17,121 +17,151 @@
 
 <!-- Featured Section (Displayed on Home Page, First Page Only) -->
 {{ if and $.IsHome (eq $paginator.PageNumber 1) }}
-  <div class="featured-container w-full mb-16">
-    
-    <!-- Random GIF Banner -->
-    {{ $isMobile := `@media (max-width: 768px) { #landscape { display: none; } #portrait { display: block; } }
-                     @media (min-width: 769px) { #landscape { display: block; } #portrait { display: none; } }` }}
+<div class="featured-container w-full mb-16">
 
-    <link rel="stylesheet" href="data:text/css;base64,{{ $isMobile | base64Encode }}" media="screen">
+  <!-- Random GIF Banner -->
+  {{ $isMobile := `@media (max-width: 768px) { #landscape { display: none; } #portrait { display: block; } }
+  @media (min-width: 769px) { #landscape { display: block; } #portrait { display: none; } }` }}
 
-    
-    {{ $portraitDir := "/animation/golden-landscape/" }}
-    {{ $landscapeDir := "/animation/golden-portrait/" }}
-    {{ $portraitFiles := readDir (printf "static%s" $portraitDir) }}
-    {{ $landscapeFiles := readDir (printf "static%s" $landscapeDir) }}
-    
-    
-    {{ $portraitGifs := slice }}
-    {{ $portraitBrightGifs := slice }}
-    {{ range $portraitFiles }}
-        {{ $portraitGifs = $portraitGifs | append .Name }}
-        {{ warnf "Added portrait GIF: %s" .Name }}
-    {{ end }}
+  <link rel="stylesheet" href="data:text/css;base64,{{ $isMobile | base64Encode }}" media="screen">
 
-    {{ $landscapeGifs := slice }}
-    {{ $portraitBrightGifs := slice }}
-    {{ range $landscapeFiles }}
-        {{ $landscapeGifs = $landscapeGifs | append .Name }}
-        {{ warnf "Added landscape GIF: %s" .Name }}
-    {{ end }}
-    
-     {{ warnf "Portrait GIFs: %s" $portraitGifs }}
-     {{ warnf "Landscape GIFs: %s" $landscapeGifs }}
-    
-    
-    {{ if and (gt (len $portraitGifs) 0) (gt (len $landscapeGifs) 0) }}
-      {{ $randomPortraitIndex := now.UnixNano | mod (len $portraitGifs) }}
-      {{ $randomLandscapeIndex := now.UnixNano | mod (len $landscapeGifs) }}
-      {{ $initialPortraitGif := index $portraitGifs $randomPortraitIndex }}
-      {{ $initialLandscapeGif := index $landscapeGifs $randomLandscapeIndex }}
-      
-      <div id="portrait" data-gifs='{{ $portraitGifs | jsonify }}' data-path="{{ $portraitDir }}">
-        <img src="{{ $portraitDir }}{{ $initialPortraitGif }}" alt="Banner" class="banner-image" id="random-portrait-gif">
-      </div>
-      <div id="landscape" data-gifs='{{ $landscapeGifs | jsonify }}' data-path="{{ $landscapeDir }}">
-        <img src="{{ $landscapeDir }}{{ $initialLandscapeGif }}" alt="Banner" class="banner-image" id="random-landscape-gif">
-      </div>
-      
-      <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          console.log('DOM fully loaded and parsed.');
-          function updateGifs() {
-        console.log('updateGifs() called.');
-        const isDarkMode = document.documentElement.classList.contains('dark');
-        console.log('Dark mode:', isDarkMode);
-        
-        const portraitContainer = document.getElementById('portrait');
-        const portraitImg = document.getElementById('random-portrait-gif');
-        const portraitGifs = JSON.parse(portraitContainer.dataset.gifs);
-        console.log('Portrait GIFs:', portraitGifs);
-        const portraitPath = portraitContainer.dataset.path;
-        
-        const landscapeContainer = document.getElementById('landscape');
-        const landscapeImg = document.getElementById('random-landscape-gif');
-        const landscapeGifs = JSON.parse(landscapeContainer.dataset.gifs);
 
-        console.log('Landscape GIFs:', landscapeGifs);
-        const landscapePath = landscapeContainer.dataset.path;
-        
-        // Filtering GIFs by dark mode:
-        let filteredPortraitGifs = portraitGifs.filter(gif => {
-              console.log('Checking portrait GIF:', gif, gif.includes('-dark'), gif.endsWith('-dark'));
-              if (gif.includes('-dark') && !isDarkMode) return false;
-              if (gif.includes('-bright') && isDarkMode) return false;
-          return true;
-        });
-        console.log('Filtered Portrait GIFs:', filteredPortraitGifs);
-        if (filteredPortraitGifs.length === 0) filteredPortraitGifs = portraitGifs;
-        const randomPortraitGif = filteredPortraitGifs[Math.floor(Math.random() * filteredPortraitGifs.length)];
-        console.log('Selected portrait GIF:', randomPortraitGif);
-        portraitImg.src = portraitPath + randomPortraitGif;
-        
-        let filteredLandscapeGifs = landscapeGifs.filter(gif => {
-              if (gif.includes('-dark') && !isDarkMode) return false;
-              if (gif.includes('-bright') && isDarkMode) return false;
-          return true;
-        });
-        console.log('Filtered Landscape GIFs:', filteredLandscapeGifs);
-        if (filteredLandscapeGifs.length === 0) filteredLandscapeGifs = landscapeGifs;
-        const randomLandscapeGif = filteredLandscapeGifs[Math.floor(Math.random() * filteredLandscapeGifs.length)];
-        console.log('Selected landscape GIF:', randomLandscapeGif);
-        landscapeImg.src = landscapePath + randomLandscapeGif;
-          }
-          
-          // Run once when DOM is loaded.
-          updateGifs();
-          
-          // Re-run updateGifs() when dark mode changes.
-          const observer = new MutationObserver(() => {
-        console.log('MutationObserver triggered. Updating GIFs.');
-        updateGifs();
-          });
-          observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        });
-      </script>
-    {{ end }}
-    
-    <p>Welcome to my world wide web. Let's start with some <a href='/music'>music</a> and <a href='/blog'>blogs</a>?</p>
-    
-    {{ range .Site.Params.aboutItems }}
-    <div class="about-item">
-      <p class="about-text"><b>{{ .title | safeHTML }}</b> {{ .description | safeHTML }}</p>
-    </div>
+  {{ $portraitDir := "/animation/golden-portrait/" }}
+  {{ $landscapeDir := "/animation/golden-landscape/" }}
+  {{ $portraitFiles := readDir (printf "static%s" $portraitDir) }}
+  {{ $landscapeFiles := readDir (printf "static%s" $landscapeDir) }}
+
+
+  {{ $portraitAssets := slice }}
+  {{ range $portraitFiles }}
+  {{ if not .IsDir }}
+  {{ $portraitAssets = $portraitAssets | append .Name }}
+  {{ end }}
+  {{ end }}
+
+  {{ $landscapeAssets := slice }}
+  {{ range $landscapeFiles }}
+  {{ if not .IsDir }}
+  {{ $landscapeAssets = $landscapeAssets | append .Name }}
+  {{ end }}
+  {{ end }}
+
+  {{ warnf "Portrait Assets: %s" $portraitAssets }}
+  {{ warnf "Landscape Assets: %s" $landscapeAssets }}
+
+
+  {{ if and (gt (len $portraitAssets) 0) (gt (len $landscapeAssets) 0) }}
+  {{ $initialPortraitAsset := index ($portraitAssets | shuffle) 0 }}
+  {{ $initialLandscapeAsset := index ($landscapeAssets | shuffle) 0 }}
+
+  <div id="portrait" data-assets='{{ $portraitAssets | jsonify }}' data-path="{{ $portraitDir }}">
+    {{ if or (strings.HasSuffix $initialPortraitAsset ".webm") (strings.HasSuffix $initialPortraitAsset ".mp4") }}
+    <video autoplay loop muted playsinline src="{{ $portraitDir }}{{ $initialPortraitAsset }}" class="banner-media"
+      id="random-portrait-media" style="width: 100%; height: auto;"></video>
+    {{ else }}
+    <img src="{{ $portraitDir }}{{ $initialPortraitAsset }}" alt="Banner" class="banner-media"
+      id="random-portrait-media" style="width: 100%; height: auto;">
     {{ end }}
   </div>
-  
-  <div class="section-divider w-full border-t border-gray-200 dark:border-gray-700 my-8"></div>
+  <div id="landscape" data-assets='{{ $landscapeAssets | jsonify }}' data-path="{{ $landscapeDir }}">
+    {{ if or (strings.HasSuffix $initialLandscapeAsset ".webm") (strings.HasSuffix $initialLandscapeAsset ".mp4") }}
+    <video autoplay loop muted playsinline src="{{ $landscapeDir }}{{ $initialLandscapeAsset }}" class="banner-media"
+      id="random-landscape-media" style="width: 100%; height: auto;"></video>
+    {{ else }}
+    <img src="{{ $landscapeDir }}{{ $initialLandscapeAsset }}" alt="Banner" class="banner-media"
+      id="random-landscape-media" style="width: 100%; height: auto;">
+    {{ end }}
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      function isVideo(filename) {
+        return filename.endsWith('.webm') || filename.endsWith('.mp4');
+      }
+
+      function createMediaElement(filename, path, id) {
+        const fullSrc = path + filename;
+        let newElement;
+        if (isVideo(filename)) {
+          newElement = document.createElement('video');
+          newElement.autoplay = true;
+          newElement.loop = true;
+          newElement.muted = true;
+          newElement.playsInline = true;
+        } else {
+          newElement = document.createElement('img');
+          newElement.alt = "Banner";
+        }
+        newElement.src = fullSrc;
+        newElement.className = "banner-media";
+        newElement.id = id;
+        newElement.style.width = "100%";
+        newElement.style.height = "auto";
+        return newElement;
+      }
+
+      function updateMedia() {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
+        ['portrait', 'landscape'].forEach(type => {
+          const container = document.getElementById(type);
+          if (!container) return;
+
+          const currentMedia = document.getElementById(`random-${type}-media`);
+          const assets = JSON.parse(container.dataset.assets);
+          const path = container.dataset.path;
+
+          // Filter logic
+          let filteredAssets = assets.filter(asset => {
+            if (asset.includes('-dark') && !isDarkMode) return false;
+            if (asset.includes('-bright') && isDarkMode) return false;
+            return true;
+          });
+
+          if (filteredAssets.length === 0) filteredAssets = assets;
+          const randomAsset = filteredAssets[Math.floor(Math.random() * filteredAssets.length)];
+
+          // Check if we need to swap the element type
+          const currentIsVideo = currentMedia.tagName === 'VIDEO';
+          const newIsVideo = isVideo(randomAsset);
+
+          if (currentIsVideo !== newIsVideo) {
+            // Type mismatch, replace element
+            const newElement = createMediaElement(randomAsset, path, `random-${type}-media`);
+            container.replaceChild(newElement, currentMedia);
+          } else {
+            // Same type, just update src if different
+            const newSrc = window.location.origin + path + randomAsset; // Helper for comparison, although src property is absolute usually
+            // But simpler: just set it.
+            if (!currentMedia.src.endsWith(randomAsset)) {
+              currentMedia.src = path + randomAsset;
+            }
+          }
+        });
+      }
+
+      // Run once when DOM is loaded.
+      updateMedia();
+
+      // Re-run updateMedia() when dark mode changes.
+      const observer = new MutationObserver(() => {
+        updateMedia();
+      });
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    });
+  </script>
+  {{ end }}
+
+  <p>Welcome to my world wide web. Let's start with some <a href='/music'>music</a> and <a href='/blog'>blogs</a>?</p>
+
+  {{ range .Site.Params.aboutItems }}
+  <div class="about-item">
+    <p class="about-text"><b>{{ .title | safeHTML }}</b> {{ .description | safeHTML }}</p>
+  </div>
+  {{ end }}
+</div>
+
+<div class="section-divider w-full border-t border-gray-200 dark:border-gray-700 my-8"></div>
 {{ end }}
 
 

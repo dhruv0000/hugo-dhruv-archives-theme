@@ -19,7 +19,7 @@
   <meta name="theme-color" content="{{ $.Scratch.Get `bg_color` }}" />
 
   <!-- author -->
-  {{ $site_author := or site.Author.name site.Params.name site.Title }}
+  {{ $site_author := or site.Params.name site.Title }}
   <!---->
   {{ if eq .Kind "page" }}
   <meta name="description" content="{{ .Summary }}" />

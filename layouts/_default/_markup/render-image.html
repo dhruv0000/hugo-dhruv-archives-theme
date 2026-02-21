@@ -1,0 +1,16 @@
+{{- $u := urls.Parse .Destination -}}
+{{- $src := $u.String -}}
+{{- if not $u.IsAbs -}}
+  {{- $path := strings.TrimPrefix "./" $u.Path -}}
+  {{- with or (.Page.Resources.GetMatch $path) (resources.Get $path) -}}
+    {{- $img := . -}}
+    {{- if eq $img.MediaType.MainType "image" -}}
+      {{- $img = $img.Resize "1200x webp q75" -}}
+    {{- end -}}
+    <img src="{{ $img.RelPermalink }}" alt="{{ $.Text }}" {{ with $.Title }}title="{{ . }}"{{ end }} width="{{ $img.Width }}" height="{{ $img.Height }}" loading="lazy" decoding="async" />
+  {{- else -}}
+    <img src="{{ $src | safeURL }}" alt="{{ $.Text }}" {{ with $.Title }}title="{{ . }}"{{ end }} loading="lazy" decoding="async" />
+  {{- end -}}
+{{- else -}}
+  <img src="{{ $src | safeURL }}" alt="{{ $.Text }}" {{ with $.Title }}title="{{ . }}"{{ end }} loading="lazy" decoding="async" />
+{{- end -}}

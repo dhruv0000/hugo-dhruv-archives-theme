@@ -1,39 +1,15 @@
 <header class="mx-auto flex h-[4.5rem] max-w-[--w] px-8 lg:justify-center custom-header">
   <div class="relative z-50 ltr:mr-auto rtl:ml-auto flex items-center">
-    <a class="-translate-y-[1px] text-2xl font-medium custom-header-title" href="{{ `` | absURL }}"
-      >{{ site.Title }}</a
-    >
-    <div
-      class="btn-dark text-[0] ltr:ml-4 rtl:mr-4 h-button w-button shrink-0 cursor-pointer"
-      role="button"
-      aria-label="Dark"
-    ></div>
-    <!-- HTML Structure -->
-<button class="btn-dark text-[0] ltr:ml-4 rtl:mr-4 h-button w-button shrink-0 cursor-pointer"
-        role="button"
-        aria-label="Dark"
-        class="relative overflow-hidden animate-fade-button">
-  <!-- Dark Images (fading out) -->
-  <img src="dark-1.jpg" class="no-style absolute w-full h-full object-cover transition-opacity duration-1000" alt="Dark 1">
-  <img src="dark-2.jpg" class="no-style absolute w-full h-full object-cover transition-opacity duration-1000" alt="Dark 2">
-  <img src="dark-3.jpg" class="no-style absolute w-full h-full object-cover transition-opacity duration-1000" alt="Dark 3">
-  <img src="dark-4.jpg" class="no-style absolute w-full h-full object-cover transition-opacity duration-1000" alt="Dark 4">
-  
-  <!-- Bright Images (fading in) -->
-  <img src="bright-4.jpg" class="no-style absolute w-full h-full object-cover transition-opacity duration-1000" alt="Bright 4">
-  <img src="bright-3.jpg" class="no-style absolute w-full h-full object-cover transition-opacity duration-1000" alt="Bright 3">
-  <img src="bright-2.jpg" class="no-style absolute w-full h-full object-cover transition-opacity duration-1000" alt="Bright 2">
-  <img src="bright-1.jpg" class="no-style absolute w-full h-full object-cover transition-opacity duration-1000" alt="Bright 1">
-  {{/*  <span class="relative z-10 text-white">Button Text</span>  */}}
-</button>
-    
+    <a class="-translate-y-[1px] text-2xl font-medium custom-header-title" href="{{ `` | absURL }}">{{ site.Title }}</a>
+    <div class="btn-dark text-[0] ltr:ml-4 rtl:mr-4 h-button w-button shrink-0 cursor-pointer" role="button"
+      aria-label="Dark"></div>
+
+
   </div>
 
   <div
     class="btn-menu relative z-50 ltr:-mr-8 rtl:-ml-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
-    role="button"
-    aria-label="Menu"
-  ></div>
+    role="button" aria-label="Menu"></div>
 
   {{ $bg_color := $.Scratch.Get "bg_color" }}<!---->
   {{ $dark_bg_color := $.Scratch.Get "dark_bg_color" }}<!---->
@@ -62,7 +38,7 @@
 
       const btnDark = document.querySelector('.btn-dark');
       if (btnDark) {
-        btnDark.style.background = `url('button/${isDark ? 'dark-1' : 'bright-1'}.svg') center/cover no-repeat`;
+        btnDark.style.background = `url('button/${isDark ? 'dark-1' : 'bright-1'}.webp') center/cover no-repeat`;
       }
     };
 
@@ -100,34 +76,26 @@
   </script>
 
   <div
-    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
-  >
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none">
     {{ $url := .RelPermalink }}<!---->
     {{ with site.Menus.main }}
     <nav class="lg:ml-8 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse">
       {{ range . }}
-      <a
-        class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal custom-header-nav"
-        href="{{ .URL }}"
-        >{{ .Name }}</a
-      >
+      <a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal custom-header-nav"
+        href="{{ .URL }}">{{ .Name }}</a>
       {{ end }}
     </nav>
     {{ end }}<!---->
-    
+
     {{ with $.Scratch.Get "social_list" }}
     <nav
       class="mt-12 flex justify-center space-x-8 rtl:space-x-reverse dark:invert ltr:lg:ml-12 rtl:lg:mr-12 lg:mt-0 lg:items-center"
-      style="margin-left: 1rem;"
-    >
+      style="margin-left: 1rem;">
       {{ range . }}<!---->
-      <a
-        class="h-7 w-7 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-4 lg:w-4 custom-header-social"
+      <a class="h-7 w-7 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-4 lg:w-4 custom-header-social"
         style="--url: url(./{{ . }}.svg); background-size: 1rem;"
         href="{{ if eq . `rss` }}{{ `index.xml` | absURL }}{{ else if eq . `mastodon` }}{{ index site.Params . }}{{ else }}{{ if eq . `threads` }}https://threads.net/{{ else if eq . `bluesky` }}https://bsky.app/profile/{{ else if eq . `behance` }}https://behance.net/{{ else }}https://{{ . }}.com/{{ end }}{{ if eq . `linkedin` }}in/{{ end }}{{ index site.Params . }}{{ end }}"
-        target="_blank"
-        rel="{{ if eq . `rss` }}alternate{{ else }}me{{ end }}"
-      >
+        target="_blank" rel="{{ if eq . `rss` }}alternate{{ else }}me{{ end }}">
         {{ . }}
       </a>
       {{ end }}<!---->

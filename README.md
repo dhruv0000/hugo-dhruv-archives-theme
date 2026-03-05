@@ -14,6 +14,24 @@ Snapshot (dark):
 
 ![](./images/screenshot_dark.png)
 
+Latest (images/new/):
+
+Protected content gate:
+
+![](./images/new/image.png)
+
+Homepage (mobile):
+
+![](./images/new/image%20copy.png)
+
+Homepage (desktop):
+
+![](./images/new/image%20copy%202.png)
+
+Homepage (mobile, alt):
+
+![](./images/new/image%20copy%203.png)
+
 ## What Is Customized
 
 - Custom typography via Hugo params + Google Fonts (`heading_*`, `body_*`, `google_fonts`)
@@ -24,6 +42,81 @@ Snapshot (dark):
   - `static/animation/golden-landscape/`
 - Homepage intro blocks via `params.aboutItems`
 - Grid-style post listing on list/home pages
+
+## Private / Protected Posts (Optional)
+
+This theme supports password-protected pages intended for:
+
+- Unfinished drafts you want to publish later
+- Private diary entries
+- Personal notes / study notes
+- "Friends-only" writeups (shared password)
+
+How it works (static-site friendly):
+
+- At build time, your rendered post HTML is encrypted and replaced with a small unlock form + encrypted payload.
+- At runtime (in the browser), readers enter the password to decrypt and render the post.
+
+Important limitations:
+
+- This is not server-side authentication. The encrypted payload is public and can be downloaded.
+- A weak password can be brute-forced offline. Use a strong password and do not treat this as high-stakes secrecy.
+
+### What The Theme Includes
+
+- Runtime decrypt + unlock UI: `static/content-protection.js`
+- Unlock styles: `assets/custom.css` (protected-content-* classes)
+- Single page content slot: `layouts/_default/single.html` (`id="protected-content-slot"`)
+- Script include: `layouts/partials/head.html` (loads `content-protection.js` on pages)
+
+### What You Add In Your Site Repo
+
+1. Add a build step after Hugo:
+
+```bash
+hugo --minify
+node themes/hugo-dhruv-archives/tools/protect-content.mjs
+```
+
+2. Set one or more folder passwords via env vars (paths are relative to your site's `content/`):
+
+```bash
+# Protect all posts under content/blog/
+CONTENT_PASSWORD__BLOG=change-this-password
+
+# Protect only content/diary/
+CONTENT_PASSWORD__DIARY=change-this-password
+
+# Protect only content/primer/
+CONTENT_PASSWORD__PRIMER=change-this-password
+
+# Optional: KDF work factor (default is 600000)
+CONTENT_PROTECTION_PBKDF2_ITERATIONS=600000
+```
+
+Env var mapping rules:
+
+- `CONTENT_PASSWORD__BLOG__MY_POST=...` maps to `content/blog/my-post/` (`__` -> `/`, `_` -> `-`)
+- If both a parent folder and a more specific folder are set, the more specific one wins.
+
+Crypto choice:
+
+- PBKDF2-HMAC-SHA256 + AES-256-GCM (WebCrypto in-browser).
+- Random 16-byte salt + random 12-byte IV per page.
+
+Sources:
+
+- OWASP Password Storage Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+- MDN SubtleCrypto.deriveKey (PBKDF2/AES-GCM): https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey
+- MDN AesGcmParams (IV requirements): https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams
+
+### Cloudflare Pages Notes
+
+- Add env vars in Cloudflare Pages -> Settings -> Variables and Secrets.
+- Set them for the correct environment:
+  - Preview deployments use Preview environment variables.
+  - Production deployments use Production environment variables.
+- Redeploy after changing vars.
 
 ## Config Template
 

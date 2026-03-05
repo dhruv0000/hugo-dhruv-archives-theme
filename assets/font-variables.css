@@ -34,7 +34,7 @@ body {
   padding-top: 1.5em;
 }
 
-img:not(.no-style):not([id*="landscape"]):not([id*="portrait"]) {
+img:not(.no-style):not(.banner-media) {
   max-width: 90%;
   height: auto;
   margin: auto;

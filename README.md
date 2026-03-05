@@ -8,9 +8,17 @@ Custom Hugo theme for [dhruv-archives.com](https://dhruv-archives.com) with modu
 First, the philosophy. Most customizations are exposed as `params.*` in your `hugo.toml` so the theme stays modular.
 
 - Modular typography + font loading via Hugo params + Google Fonts (`heading_*`, `body_*`, `google_fonts`) (compiled into CSS variables via `assets/font-variables.css`)
-- Responsive homepage featured "postcard" area (fluid across devices) with random portrait/landscape media from (//TO-DO: Can make croping dynamic and dark, bright mask logic easier):
-  - `static/animation/golden-portrait/`
-  - `static/animation/golden-landscape/`
+- Responsive homepage featured "postcard" area (fluid across devices) with random media sourced from:
+  - `static/animation/` (top-level files only)
+  - CSS-driven golden-ratio framing:
+    - mobile (`<=768px`): landscape crop
+    - desktop (`>=769px`): portrait crop
+  - Filename mode masking:
+    - `*-dark.*` only in dark mode
+    - `*-bright.*` only in light mode
+    - untagged files are eligible in both modes
+  - Optional per-file crop focus via `params.postcardFocus` in `hugo.toml`:
+    - set `landscape` and `portrait` as `"x% y%"`
 - Homepage intro blocks via `params.aboutItems`
 - Animated theme toggle with custom assets (`/static/button/*.webp`)
 - Flexoki-inspired light/dark background palette controlled by `params.color`
@@ -110,6 +118,12 @@ title = "Your Site Title"
   [[params.aboutItems]]
     title = "./whoami"
     description = "Short blurb for the homepage."
+
+  # optional postcard crop focus (per file)
+  [params.postcardFocus]
+    [params.postcardFocus."cowboy-bright.webm"]
+      landscape = "55% 50%"
+      portrait = "70% 52%"
 
 [menu]
   [[menu.main]]

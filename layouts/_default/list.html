@@ -19,64 +19,35 @@
 {{ if and $.IsHome (eq $paginator.PageNumber 1) }}
 <div class="featured-container w-full mb-16">
 
-  <!-- Random GIF Banner -->
-  {{ $isMobile := `@media (max-width: 768px) { #landscape { display: block; } #portrait { display: none; } }
-  @media (min-width: 769px) { #landscape { display: none; } #portrait { display: block; } }` }}
+  <!-- Random Banner -->
+  {{ $mediaDir := "/animation/" }}
+  {{ $mediaFiles := readDir (printf "static%s" $mediaDir) }}
 
-  <link rel="stylesheet" href="data:text/css;base64,{{ $isMobile | base64Encode }}" media="screen">
-
-
-  {{ $portraitDir := "/animation/golden-portrait/" }}
-  {{ $landscapeDir := "/animation/golden-landscape/" }}
-  {{ $portraitFiles := readDir (printf "static%s" $portraitDir) }}
-  {{ $landscapeFiles := readDir (printf "static%s" $landscapeDir) }}
-
-
-  {{ $portraitAssets := slice }}
-  {{ range $portraitFiles }}
+  {{ $mediaAssets := slice }}
+  {{ range $mediaFiles }}
   {{ if not .IsDir }}
-  {{ $portraitAssets = $portraitAssets | append .Name }}
+  {{ $mediaAssets = $mediaAssets | append .Name }}
   {{ end }}
   {{ end }}
+  {{ $postcardFocus := .Site.Params.postcardFocus | default (dict) }}
 
-  {{ $landscapeAssets := slice }}
-  {{ range $landscapeFiles }}
-  {{ if not .IsDir }}
-  {{ $landscapeAssets = $landscapeAssets | append .Name }}
-  {{ end }}
-  {{ end }}
+  {{ if gt (len $mediaAssets) 0 }}
+  {{ $initialAsset := index ($mediaAssets | shuffle) 0 }}
 
-  {{ warnf "Portrait Assets: %s" $portraitAssets }}
-  {{ warnf "Landscape Assets: %s" $landscapeAssets }}
-
-
-  {{ if and (gt (len $portraitAssets) 0) (gt (len $landscapeAssets) 0) }}
-  {{ $initialPortraitAsset := index ($portraitAssets | shuffle) 0 }}
-  {{ $initialLandscapeAsset := index ($landscapeAssets | shuffle) 0 }}
-
-  <div id="portrait" data-assets='{{ $portraitAssets | jsonify }}' data-path="{{ $portraitDir }}">
-    {{ if or (strings.HasSuffix $initialPortraitAsset ".webm") (strings.HasSuffix $initialPortraitAsset ".mp4") }}
-    <video autoplay loop muted playsinline src="{{ $portraitDir }}{{ $initialPortraitAsset }}" class="banner-media"
-      id="random-portrait-media" style="width: 100%; height: auto;"></video>
+  <div id="postcard-media" class="postcard-media-frame" data-assets='{{ $mediaAssets | jsonify }}'
+    data-focus='{{ $postcardFocus | jsonify }}' data-path="{{ $mediaDir }}">
+    {{ if or (strings.HasSuffix $initialAsset ".webm") (strings.HasSuffix $initialAsset ".mp4") }}
+    <video autoplay loop muted playsinline src="{{ $mediaDir }}{{ $initialAsset }}" class="banner-media" id="random-postcard-media"></video>
     {{ else }}
-    <img src="{{ $portraitDir }}{{ $initialPortraitAsset }}" alt="Banner" class="banner-media"
-      id="random-portrait-media" style="width: 100%; height: auto;">
-    {{ end }}
-  </div>
-  <div id="landscape" data-assets='{{ $landscapeAssets | jsonify }}' data-path="{{ $landscapeDir }}">
-    {{ if or (strings.HasSuffix $initialLandscapeAsset ".webm") (strings.HasSuffix $initialLandscapeAsset ".mp4") }}
-    <video autoplay loop muted playsinline src="{{ $landscapeDir }}{{ $initialLandscapeAsset }}" class="banner-media"
-      id="random-landscape-media" style="width: 100%; height: auto;"></video>
-    {{ else }}
-    <img src="{{ $landscapeDir }}{{ $initialLandscapeAsset }}" alt="Banner" class="banner-media"
-      id="random-landscape-media" style="width: 100%; height: auto;">
+    <img src="{{ $mediaDir }}{{ $initialAsset }}" alt="Banner" class="banner-media" id="random-postcard-media">
     {{ end }}
   </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       function isVideo(filename) {
-        return filename.endsWith('.webm') || filename.endsWith('.mp4');
+        const lower = filename.toLowerCase();
+        return lower.endsWith('.webm') || lower.endsWith('.mp4');
       }
 
       function createMediaElement(filename, path, id) {
@@ -95,49 +66,75 @@
         newElement.src = fullSrc;
         newElement.className = "banner-media";
         newElement.id = id;
-        newElement.style.width = "100%";
-        newElement.style.height = "auto";
         return newElement;
       }
 
+      function allowAssetForMode(filename, isDarkMode) {
+        const lower = filename.toLowerCase();
+        if (lower.includes('-dark') && !isDarkMode) return false;
+        if (lower.includes('-bright') && isDarkMode) return false;
+        return true;
+      }
+
+      function resolveFocusForAsset(focusMap, filename, isPortraitMode) {
+        const fallback = '50% 50%';
+        const entry = focusMap[filename];
+        if (!entry) return fallback;
+        if (typeof entry === 'string') return entry;
+        if (typeof entry !== 'object') return fallback;
+
+        const modeKey = isPortraitMode ? 'portrait' : 'landscape';
+        return entry[modeKey] || entry.default || fallback;
+      }
+
+      function applyCropFocus(mediaElement, focusMap, filename) {
+        const isPortraitMode = window.matchMedia('(min-width: 769px)').matches;
+        mediaElement.style.objectPosition = resolveFocusForAsset(focusMap, filename, isPortraitMode);
+      }
+
       function updateMedia() {
+        const container = document.getElementById('postcard-media');
+        if (!container) return;
+
+        const currentMedia = document.getElementById('random-postcard-media');
+        if (!currentMedia) return;
+
+        const assets = JSON.parse(container.dataset.assets);
+        const focusMap = JSON.parse(container.dataset.focus || '{}');
+        const path = container.dataset.path;
         const isDarkMode = document.documentElement.classList.contains('dark');
 
-        ['portrait', 'landscape'].forEach(type => {
-          const container = document.getElementById(type);
-          if (!container) return;
+        let filteredAssets = assets.filter(asset => allowAssetForMode(asset, isDarkMode));
+        if (filteredAssets.length === 0) filteredAssets = assets;
+        const randomAsset = filteredAssets[Math.floor(Math.random() * filteredAssets.length)];
 
-          const currentMedia = document.getElementById(`random-${type}-media`);
-          const assets = JSON.parse(container.dataset.assets);
-          const path = container.dataset.path;
+        const currentIsVideo = currentMedia.tagName === 'VIDEO';
+        const newIsVideo = isVideo(randomAsset);
 
-          // Filter logic
-          let filteredAssets = assets.filter(asset => {
-            if (asset.includes('-dark') && !isDarkMode) return false;
-            if (asset.includes('-bright') && isDarkMode) return false;
-            return true;
-          });
+        if (currentIsVideo !== newIsVideo) {
+          const newElement = createMediaElement(randomAsset, path, 'random-postcard-media');
+          applyCropFocus(newElement, focusMap, randomAsset);
+          container.replaceChild(newElement, currentMedia);
+        } else if (!currentMedia.src.endsWith(randomAsset)) {
+          currentMedia.src = path + randomAsset;
+          applyCropFocus(currentMedia, focusMap, randomAsset);
+        } else {
+          applyCropFocus(currentMedia, focusMap, randomAsset);
+        }
 
-          if (filteredAssets.length === 0) filteredAssets = assets;
-          const randomAsset = filteredAssets[Math.floor(Math.random() * filteredAssets.length)];
+        container.dataset.currentAsset = randomAsset;
+      }
 
-          // Check if we need to swap the element type
-          const currentIsVideo = currentMedia.tagName === 'VIDEO';
-          const newIsVideo = isVideo(randomAsset);
+      function updateFocusForCurrentAsset() {
+        const container = document.getElementById('postcard-media');
+        if (!container) return;
 
-          if (currentIsVideo !== newIsVideo) {
-            // Type mismatch, replace element
-            const newElement = createMediaElement(randomAsset, path, `random-${type}-media`);
-            container.replaceChild(newElement, currentMedia);
-          } else {
-            // Same type, just update src if different
-            const newSrc = window.location.origin + path + randomAsset; // Helper for comparison, although src property is absolute usually
-            // But simpler: just set it.
-            if (!currentMedia.src.endsWith(randomAsset)) {
-              currentMedia.src = path + randomAsset;
-            }
-          }
-        });
+        const currentMedia = document.getElementById('random-postcard-media');
+        const currentAsset = container.dataset.currentAsset;
+        if (!currentMedia || !currentAsset) return;
+
+        const focusMap = JSON.parse(container.dataset.focus || '{}');
+        applyCropFocus(currentMedia, focusMap, currentAsset);
       }
 
       // Run once when DOM is loaded.
@@ -148,6 +145,13 @@
         updateMedia();
       });
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+      const portraitQuery = window.matchMedia('(min-width: 769px)');
+      if (portraitQuery.addEventListener) {
+        portraitQuery.addEventListener('change', updateFocusForCurrentAsset);
+      } else if (portraitQuery.addListener) {
+        portraitQuery.addListener(updateFocusForCurrentAsset);
+      }
     });
   </script>
   {{ end }}

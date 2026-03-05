@@ -1,122 +1,71 @@
 # Hugo Dhruv Archives Theme
 
-Custom Hugo theme for [dhruv-archives.com](https://dhruv-archives.com), built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper).
+Custom Hugo theme for [dhruv-archives.com](https://dhruv-archives.com) with modular, param-driven customization and a redesigned homepage UI.
+
+
+## My Bits and Bobs
+
+First, the philosophy. Most customizations are exposed as `params.*` in your `hugo.toml` so the theme stays modular.
+
+- Modular typography + font loading via Hugo params + Google Fonts (`heading_*`, `body_*`, `google_fonts`) (compiled into CSS variables via `assets/font-variables.css`)
+- Responsive homepage featured "postcard" area (fluid across devices) with random portrait/landscape media from (//TO-DO: Can make croping dynamic and dark, bright mask logic easier):
+  - `static/animation/golden-portrait/`
+  - `static/animation/golden-landscape/`
+- Homepage intro blocks via `params.aboutItems`
+- Animated theme toggle with custom assets (`/static/button/*.webp`)
+- Flexoki-inspired light/dark background palette controlled by `params.color`
+- Grid-style post listing on list/home pages
+- [Private / Protected Posts (Optional)](#private--protected-posts-optional): build-time encryption + in-browser unlock UI (see section below)
 
 ## Screenshots
 
 The images in `./images/` are snapshots and may not match your latest local changes.
 
-Snapshot (light):
-
-![](./images/screenshot.png)
-
-Snapshot (dark):
-
-![](./images/screenshot_dark.png)
-
 Latest (images/new/):
 
 Protected content gate:
 
-![](./images/new/image.png)
+<img src="./images/new/image.png" width="640" alt="Protected content gate screenshot" />
 
 Homepage (mobile):
 
-![](./images/new/image%20copy.png)
+<img src="./images/new/image%20copy.png" width="360" alt="Homepage mobile screenshot" />
 
 Homepage (desktop):
 
-![](./images/new/image%20copy%202.png)
+<img src="./images/new/image%20copy%202.png" width="720" alt="Homepage desktop screenshot" />
 
 Homepage (mobile, alt):
 
-![](./images/new/image%20copy%203.png)
+<img src="./images/new/image%20copy%203.png" width="360" alt="Homepage mobile screenshot (alt)" />
 
-## What Is Customized
+Snapshot (light):
 
-- Custom typography via Hugo params + Google Fonts (`heading_*`, `body_*`, `google_fonts`)
-- Flexoki-inspired light/dark background palette controlled by `params.color`
-- Animated theme toggle with custom assets (`/static/button/*.webp`)
-- Homepage featured area with random portrait/landscape media from:
-  - `static/animation/golden-portrait/`
-  - `static/animation/golden-landscape/`
-- Homepage intro blocks via `params.aboutItems`
-- Grid-style post listing on list/home pages
+<img src="./images/screenshot.png" width="720" alt="Theme snapshot (light)" />
 
-## Private / Protected Posts (Optional)
+Snapshot (dark):
 
-This theme supports password-protected pages intended for:
+<img src="./images/screenshot_dark.png" width="720" alt="Theme snapshot (dark)" />
 
-- Unfinished drafts you want to publish later
-- Private diary entries
-- Personal notes / study notes
-- "Friends-only" writeups (shared password)
+## Install
 
-How it works (static-site friendly):
-
-- At build time, your rendered post HTML is encrypted and replaced with a small unlock form + encrypted payload.
-- At runtime (in the browser), readers enter the password to decrypt and render the post.
-
-Important limitations:
-
-- This is not server-side authentication. The encrypted payload is public and can be downloaded.
-- A weak password can be brute-forced offline. Use a strong password and do not treat this as high-stakes secrecy.
-
-### What The Theme Includes
-
-- Runtime decrypt + unlock UI: `static/content-protection.js`
-- Build-time encryptor reference: `themes/hugo-dhruv-archives/tools/protect-content.mjs`
-- Unlock styles: `assets/custom.css` (protected-content-* classes)
-- Single page content slot: `layouts/_default/single.html` (`id="protected-content-slot"`)
-- Script include: `layouts/partials/head.html` (loads `content-protection.js` on pages)
-
-### What You Add In Your Site Repo
-
-For a private Hugo blog setup, keep your content/site repo private and keep this theme public.
-Run the encryptor in your build pipeline so selected folders are shipped as encrypted payloads.
-This lets you publish unfinished blogs, diary pages, or personal notes behind a password prompt.
-
-1. Add a build step after Hugo:
-   (If you deploy on Cloudflare Pages, set these env vars in Variables and Secrets for the matching environment.
-   Preview branch deployments use Preview vars, and your production branch uses Production vars.
-   Redeploy after variable changes so the build picks them up.)
+As a git submodule:
 
 ```bash
-hugo --minify
-node themes/hugo-dhruv-archives/tools/protect-content.mjs
+git submodule add https://github.com/dhruv0000/hugo-dhruv-archives-theme themes/hugo-dhruv-archives
 ```
 
-2. Set one or more folder passwords via env vars (paths are relative to your site's `content/`):
+Then in your `hugo.toml`:
+
+```toml
+theme = "hugo-dhruv-archives"
+```
+
+Run:
 
 ```bash
-# Protect all posts under content/blog/
-CONTENT_PASSWORD__BLOG=change-this-password
-
-# Protect only content/diary/
-CONTENT_PASSWORD__DIARY=change-this-password
-
-# Protect only content/primer/
-CONTENT_PASSWORD__PRIMER=change-this-password
-
-# Optional: KDF work factor (default is 600000)
-CONTENT_PROTECTION_PBKDF2_ITERATIONS=600000
+hugo server
 ```
-
-Env var mapping rules:
-
-- `CONTENT_PASSWORD__BLOG__MY_POST=...` maps to `content/blog/my-post/` (`__` -> `/`, `_` -> `-`)
-- If both a parent folder and a more specific folder are set, the more specific one wins.
-
-Crypto choice:
-
-- PBKDF2-HMAC-SHA256 + AES-256-GCM (WebCrypto in-browser).
-- Random 16-byte salt + random 12-byte IV per page.
-
-Sources:
-
-- OWASP Password Storage Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
-- MDN SubtleCrypto.deriveKey (PBKDF2/AES-GCM): https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey
-- MDN AesGcmParams (IV requirements): https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams
 
 ## Config Template
 
@@ -223,25 +172,84 @@ math = true
 mermaid = true
 ```
 
-## Install
+## Private / Protected Posts (Optional)
 
-As a git submodule:
+This theme supports password-protected pages intended for:
+
+- Unfinished drafts you want to publish later
+- Private diary entries
+- Personal notes / study notes
+- "Friends-only" writeups (shared password)
+
+How it works (static-site friendly):
+
+- At build time, your rendered post HTML is encrypted and replaced with a small unlock form + encrypted payload.
+- At runtime (in the browser), readers enter the password to decrypt and render the post.
+
+Important limitations:
+
+- This is not server-side authentication. The encrypted payload is public and can be downloaded.
+- A weak password can be brute-forced offline. Use a strong password and do not treat this as high-stakes secrecy.
+
+### What The Theme Includes
+
+- Runtime decrypt + unlock UI: `static/content-protection.js`
+- Build-time encryptor reference: `themes/hugo-dhruv-archives/tools/protect-content.mjs`
+- Unlock styles: `assets/custom.css` (protected-content-* classes)
+- Single page content slot: `layouts/_default/single.html` (`id="protected-content-slot"`)
+- Script include: `layouts/partials/head.html` (loads `content-protection.js` on pages)
+
+### What You Add In Your Site Repo
+
+For a private Hugo blog setup, keep your content/site repo private and keep this theme public.
+Run the encryptor in your build pipeline so selected folders are shipped as encrypted payloads.
+This lets you publish unfinished blogs, diary pages, or personal notes behind a password prompt.
+
+1. Add a build step after Hugo:
+   (If you deploy on Cloudflare Pages, set these env vars in Variables and Secrets for the matching environment.
+   Preview branch deployments use Preview vars, and your production branch uses Production vars.
+   Redeploy after variable changes so the build picks them up.)
 
 ```bash
-git submodule add https://github.com/dhruv0000/hugo-dhruv-archives-theme themes/hugo-dhruv-archives
+hugo --minify
+node themes/hugo-dhruv-archives/tools/protect-content.mjs
 ```
 
-Then in your `hugo.toml`:
-
-```toml
-theme = "hugo-dhruv-archives"
-```
-
-Run:
+2. Set one or more folder passwords via env vars (paths are relative to your site's `content/`):
 
 ```bash
-hugo server
+# Protect all posts under content/blog/
+CONTENT_PASSWORD__BLOG=change-this-password
+
+# Protect only content/diary/
+CONTENT_PASSWORD__DIARY=change-this-password
+
+# Protect only content/primer/
+CONTENT_PASSWORD__PRIMER=change-this-password
+
+# Optional: KDF work factor (default is 600000)
+CONTENT_PROTECTION_PBKDF2_ITERATIONS=600000
 ```
+
+Env var mapping rules:
+
+- `CONTENT_PASSWORD__BLOG__MY_POST=...` maps to `content/blog/my-post/` (`__` -> `/`, `_` -> `-`)
+- If both a parent folder and a more specific folder are set, the more specific one wins.
+
+Crypto choice:
+
+- PBKDF2-HMAC-SHA256 + AES-256-GCM (WebCrypto in-browser).
+- Random 16-byte salt + random 12-byte IV per page.
+
+Sources:
+
+- OWASP Password Storage Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+- MDN SubtleCrypto.deriveKey (PBKDF2/AES-GCM): https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey
+- MDN AesGcmParams (IV requirements): https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams
+
+## Credits
+
+Built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper).
 
 ## License
 

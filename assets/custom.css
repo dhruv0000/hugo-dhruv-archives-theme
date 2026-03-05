@@ -1,4 +1,11 @@
 /* Custom styles for the about section */
+@media (min-width: 1024px) {
+  /* Reduce spacing between top-nav menu items (Audio/Video, Blog, ...) */
+  .custom-header-menu {
+    gap: 1.5rem;
+  }
+}
+
   .about-text h2 {
     margin: 0;
     font-size: 1.8rem;

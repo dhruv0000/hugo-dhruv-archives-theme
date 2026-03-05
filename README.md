@@ -65,13 +65,21 @@ Important limitations:
 ### What The Theme Includes
 
 - Runtime decrypt + unlock UI: `static/content-protection.js`
+- Build-time encryptor reference: `themes/hugo-dhruv-archives/tools/protect-content.mjs`
 - Unlock styles: `assets/custom.css` (protected-content-* classes)
 - Single page content slot: `layouts/_default/single.html` (`id="protected-content-slot"`)
 - Script include: `layouts/partials/head.html` (loads `content-protection.js` on pages)
 
 ### What You Add In Your Site Repo
 
+For a private Hugo blog setup, keep your content/site repo private and keep this theme public.
+Run the encryptor in your build pipeline so selected folders are shipped as encrypted payloads.
+This lets you publish unfinished blogs, diary pages, or personal notes behind a password prompt.
+
 1. Add a build step after Hugo:
+   (If you deploy on Cloudflare Pages, set these env vars in Variables and Secrets for the matching environment.
+   Preview branch deployments use Preview vars, and your production branch uses Production vars.
+   Redeploy after variable changes so the build picks them up.)
 
 ```bash
 hugo --minify
@@ -109,14 +117,6 @@ Sources:
 - OWASP Password Storage Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 - MDN SubtleCrypto.deriveKey (PBKDF2/AES-GCM): https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey
 - MDN AesGcmParams (IV requirements): https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams
-
-### Cloudflare Pages Notes
-
-- Add env vars in Cloudflare Pages -> Settings -> Variables and Secrets.
-- Set them for the correct environment:
-  - Preview deployments use Preview environment variables.
-  - Production deployments use Production environment variables.
-- Redeploy after changing vars.
 
 ## Config Template
 
@@ -170,7 +170,7 @@ title = "Your Site Title"
     weight = 10
 ```
 
-## Additional Supported Params
+## Additional Supported Params (From old template)
 
 ```toml
 [services]

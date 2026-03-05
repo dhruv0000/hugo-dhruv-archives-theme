@@ -6,21 +6,21 @@
   --body-h-weight: {{ .Site.Params.body_h_weight }};
 }
 
-/* Apply font variables */
+/* Base body type */
 body {
   font-family: var(--body-font);
   font-weight: var(--body-weight);
 }
 
-/* Apply heading font only to site title and main menu */
+/* Header title and nav */
 .custom-header-title,
 .custom-header-nav {
   font-family: var(--heading-font);
   font-weight: var(--heading-weight) !important;
-  /* TO-DO: Add as var to theme hugo (heading) */
   color: black;
+
   .dark & {
-    color: #FAF3DD; /* Light gray in dark mode */
+    color: #faf3dd;
   }
 }
 
@@ -33,8 +33,6 @@ body {
 .article-section {
   padding-top: 1.5em;
 }
-
-
 
 img:not(.no-style):not([id*="landscape"]):not([id*="portrait"]) {
   max-width: 90%;

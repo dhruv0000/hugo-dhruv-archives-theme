@@ -1,71 +1,76 @@
-/* Custom styles for the about section */
+/* List and hero tokens */
+:root {
+  --list-post-divider-light: #404040;
+  --list-post-divider-dark: #faf3dd;
+}
+
+/* Header spacing */
 @media (min-width: 1024px) {
-  /* Reduce spacing between top-nav menu items (Audio/Video, Blog, ...) */
   .custom-header-menu {
     gap: 1.5rem;
   }
 }
 
-  .about-text h2 {
-    margin: 0;
-    font-size: 1.8rem;
-    color: #ffffff;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-  }
-  
-  .about-text p {
-    margin-top: 0.5rem;
-    font-size: 1.2rem;
-    color: #f0f0f0;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-  }
+/* About section typography */
+.about-text h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #fff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
 
-  .featured-container {
-    position: relative;
-    display: block;
-    width: 100%;
-    margin-bottom: 2em;
-    overflow: hidden; /* Contain floated children */
-  }
+.about-text p {
+  margin-top: 0.5rem;
+  font-size: 1.2rem;
+  color: #f0f0f0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
 
-  .featured-container::after {
-    content: "";
-    display: block;
-    clear: both; /* Clear the float */
-  }
+/* Featured hero media block */
+.featured-container {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-bottom: 2em;
+  overflow: hidden;
+}
 
-  .featured-container .banner-media {
-    float: left;
-    display: block;
-    border-radius: 1cap;
-  }
+.featured-container::after {
+  content: "";
+  display: block;
+  clear: both;
+}
 
+.featured-container .banner-media {
+  float: left;
+  display: block;
+  border-radius: 1cap;
+}
 
-  .dark .list-posts {
-    clear: both; /* Ensure it starts below any floated elements */
-    padding-top: 1.5em;
-    
-    /* TO-DO: Add Headding tag */
-    border-top: 0.4em solid #FAF3DD; /* Light gray border in light mode, 30% translucent */
-  }
+/* Post list divider */
+.list-posts {
+  clear: both;
+  padding-top: 1.25em;
+  border-top: 0.4em solid var(--list-post-divider-light);
+}
 
-  .list-posts {
-    clear: both; /* Ensure it starts below any floated elements */
-    padding-top: 1.25em;
-    border-top: 0.4em solid #404040; /* Light gray border in light mode */
-  }
+.dark .list-posts {
+  padding-top: 1.5em;
+  border-top-color: var(--list-post-divider-dark);
+}
 
-/* Responsive image sizing for portrait and landscape */
-
+/* Responsive media sizing */
 @media (max-width: 768px) {
   #portrait .banner-media {
     max-width: 100%;
   }
+
   #portrait {
     text-align: center;
   }
+
   .featured-container .banner-media {
-    margin: 0 0 1em 0;
+    margin: 0 0 1em;
   }
 }
 
@@ -75,9 +80,9 @@
   }
 
   .featured-container .banner-media {
-    margin-bottom: 1.25em;
     margin-top: 1.25em;
     margin-right: 2em;
+    margin-bottom: 1.25em;
   }
 
   #landscape .banner-media {
@@ -87,60 +92,87 @@
   }
 }
 
-
-/* Loading div in baseof.html */
-/* filepath: /Users/siren/project/dhruv-archives/themes/hugo-dhruv-archives/assets/custom.css */
-
-/* Loading Indicator Styles */
+/* Loading indicator */
 .loading-container {
+  position: fixed;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: fixed;
   width: 100%;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.80); /* optional overlay */
-  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 .loading {
   width: 80%;
   height: 80%;
+  background-image: url("/icons/loading.gif");
   background-position-x: center;
-  background-image: url("/icons/loading.gif"); /* Replace with your image URL */
   background-size: contain;
   background-repeat: no-repeat;
 }
 
-/* Tailwind CSS with custom animation */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* Theme button image fade utility */
 @layer utilities {
-  /* Add vendor-prefixed keyframes for mobile browsers */
   @-webkit-keyframes fadeSequence {
-    0%   { opacity: 1; }
-    12.5%  { opacity: 0.75; }
-    25%  { opacity: 0.5; }
-    37.5%  { opacity: 0.25; }
-    50%  { opacity: 0; }
-    62.5%  { opacity: 0.25; }
-    75%  { opacity: 0.5; }
-    87.5%  { opacity: 0.75; }
-    100% { opacity: 1; }
+    0% {
+      opacity: 1;
+    }
+    12.5% {
+      opacity: 0.75;
+    }
+    25% {
+      opacity: 0.5;
+    }
+    37.5% {
+      opacity: 0.25;
+    }
+    50% {
+      opacity: 0;
+    }
+    62.5% {
+      opacity: 0.25;
+    }
+    75% {
+      opacity: 0.5;
+    }
+    87.5% {
+      opacity: 0.75;
+    }
+    100% {
+      opacity: 1;
+    }
   }
 
   @keyframes fadeSequence {
-    0%   { opacity: 1; }
-    12.5%  { opacity: 0.75; }
-    25%  { opacity: 0.5; }
-    37.5%  { opacity: 0.25; }
-    50%  { opacity: 0; }
-    62.5%  { opacity: 0.25; }
-    75%  { opacity: 0.5; }
-    87.5%  { opacity: 0.75; }
-    100% { opacity: 1; }
+    0% {
+      opacity: 1;
+    }
+    12.5% {
+      opacity: 0.75;
+    }
+    25% {
+      opacity: 0.5;
+    }
+    37.5% {
+      opacity: 0.25;
+    }
+    50% {
+      opacity: 0;
+    }
+    62.5% {
+      opacity: 0.25;
+    }
+    75% {
+      opacity: 0.5;
+    }
+    87.5% {
+      opacity: 0.75;
+    }
+    100% {
+      opacity: 1;
+    }
   }
 
   .animate-fade-button {
@@ -148,13 +180,35 @@
     animation: fadeSequence 4s infinite;
   }
 
-  /* Ensure only one image is visible at a time */
-  button img:nth-child(1) { animation-delay: 0s; }    /* dark-1 */
-  button img:nth-child(2) { animation-delay: 0.5s; }  /* dark-2 */
-  button img:nth-child(3) { animation-delay: 1s; }    /* dark-3 */
-  button img:nth-child(4) { animation-delay: 1.5s; }  /* dark-4 */
-  button img:nth-child(5) { animation-delay: 2s; }    /* bright-4 */
-  button img:nth-child(6) { animation-delay: 2.5s; }  /* bright-3 */
-  button img:nth-child(7) { animation-delay: 3s; }    /* bright-2 */
-  button img:nth-child(8) { animation-delay: 3.5s; }  /* bright-1 */
+  button img:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  button img:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+
+  button img:nth-child(3) {
+    animation-delay: 1s;
+  }
+
+  button img:nth-child(4) {
+    animation-delay: 1.5s;
+  }
+
+  button img:nth-child(5) {
+    animation-delay: 2s;
+  }
+
+  button img:nth-child(6) {
+    animation-delay: 2.5s;
+  }
+
+  button img:nth-child(7) {
+    animation-delay: 3s;
+  }
+
+  button img:nth-child(8) {
+    animation-delay: 3.5s;
+  }
 }

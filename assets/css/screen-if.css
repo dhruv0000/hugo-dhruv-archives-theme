@@ -1,27 +1,32 @@
-/* Mobile styles */
-.desktop-only, .tablet-only {
+/* Mobile first */
+.desktop-only,
+.tablet-only {
   display: none;
 }
+
 .mobile-only {
   display: flex;
-
 }
 
-/* Tablet styles */
+/* Tablet */
 @media screen and (min-width: 769px) and (max-width: 1024px) {
-  .desktop-only, .mobile-only {
+  .desktop-only,
+  .mobile-only {
     display: none;
   }
+
   .tablet-only {
     display: flex;
   }
 }
 
-/* Desktop styles */
+/* Desktop */
 @media screen and (min-width: 1025px) {
-  .mobile-only, .tablet-only {
+  .mobile-only,
+  .tablet-only {
     display: none;
   }
+
   .desktop-only {
     display: block;
   }

@@ -74,6 +74,10 @@
   ></script>
   {{ end }}
 
+  {{ if .IsPage }}
+  <script defer src="{{ `content-protection.js` | relURL }}"></script>
+  {{ end }}
+
   <!-- math -->
   {{ if or .Params.math site.Params.math }}
   <!---->

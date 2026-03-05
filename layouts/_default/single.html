@@ -19,7 +19,9 @@
     {{ end }}
   </header>
 
-  <section class="article-section">{{ .Content }}</section>
+  <!-- PROTECTED_CONTENT_START -->
+  <section id="protected-content-slot" class="article-section">{{ .Content }}</section>
+  <!-- PROTECTED_CONTENT_END -->
 
   <!-- Post Tags -->
   {{ if .Params.tags }}

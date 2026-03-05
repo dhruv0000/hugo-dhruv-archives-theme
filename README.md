@@ -1,120 +1,155 @@
+# Hugo Dhruv Archives Theme
 
-<div align="center">
-<h1>Hugo theme for Dhruv Archives </h1>
+Custom Hugo theme for [dhruv-archives.com](https://dhruv-archives.com), built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper).
 
-A Hugo theme for [dhruv-archives.com](https://github.com/dhruv0000/dhruv-archives) (snake-case) or [dhruvArchives.com](https://github.com/dhruv0000/dhruv-archives) (camelCase), built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper).
+## Screenshots
 
-</div>
----
+The images in `./images/` are snapshots and may not match your latest local changes.
 
-## Overview
-[to-do] Change this ref
+Snapshot (light):
+
 ![](./images/screenshot.png)
+
+Snapshot (dark):
+
 ![](./images/screenshot_dark.png)
-![](./images/pagespeed.png)
 
-## Customizations
+## What Is Customized
 
-This theme includes several specific customizations on top of the base hugo-paper theme:
+- Custom typography via Hugo params + Google Fonts (`heading_*`, `body_*`, `google_fonts`)
+- Flexoki-inspired light/dark background palette controlled by `params.color`
+- Animated theme toggle with custom assets (`/static/button/*.webp`)
+- Homepage featured area with random portrait/landscape media from:
+  - `static/animation/golden-portrait/`
+  - `static/animation/golden-landscape/`
+- Homepage intro blocks via `params.aboutItems`
+- Grid-style post listing on list/home pages
 
-[to-do] All the customizations
-1. **Typography**
-   - Primary Font: Jersey 15
-   - Secondary Font: Roboto
+## Config Template
 
-2. **Color Scheme**
-   - Implements [Flexoki](https://stephango.com/flexoki) color palette
-   - Carefully chosen colors for both light and dark modes
+Copy/paste and tweak:
 
-3. **Dark Mode Animation**
-   - Enhanced dark/light mode transition
-   - Smooth animation; inspired by Jersey 15
+```toml
+theme = "hugo-dhruv-archives"
+baseURL = "https://example.com/"
+languageCode = "en-us"
+title = "Your Site Title"
 
-## Options
+[params]
+  # which sections count as "posts" (affects home + prev/next nav)
+  mainSections = ["blog"]
 
-Available options to `config.toml` or `hugo.toml`:
+  # valid: linen, wheat, gray, light
+  color = "linen"
+
+  # fonts (optional)
+  google_fonts = [
+    ["Jersey 15", "400"],
+    ["Courier Prime", "400,700"]
+  ]
+
+  heading_font = "Jersey 15"
+  heading_weight = "400"
+  body_font = "Courier Prime"
+  body_weight = "400,700"
+  body_h_weight = "700"
+
+  # social (optional)
+  github = "YOUR_GITHUB_ID"
+  twitter = "YOUR_TWITTER_ID"
+  linkedin = "YOUR_LINKEDIN_ID"
+  behance = "YOUR_BEHANCE_ID"
+  rss = true
+
+  # icons (optional)
+  favicon = "favicon.ico"
+  appleTouchIcon = "apple-touch-icon.png"
+
+  [[params.aboutItems]]
+    title = "./whoami"
+    description = "Short blurb for the homepage."
+
+[menu]
+  [[menu.main]]
+    identifier = "blog"
+    name = "Blog"
+    url = "/blog/"
+    weight = 10
+```
+
+## Additional Supported Params
 
 ```toml
 [services]
   [services.disqus]
-    shortname = 'YOUR_DISQUS_SHORTNAME'     # use disqus comments
+    shortname = "YOUR_DISQUS_SHORTNAME"
 
 [params]
-  # color style
-  color = 'grey'                           # linen, wheat, gray, light
+  # social icons rendered in header:
+  # twitter, github, instagram, linkedin, mastodon, threads, bluesky, behance, rss
+  mastodon = "https://mastodon.instance/@you"
+  threads = "@your_handle"
+  bluesky = "your-handle.bsky.social"
+  rss = true
 
-  # header social icons
-  twitter = 'YOUR_TWITTER_ID'               # twitter.com/YOUR_TWITTER_ID
-  github = 'YOUR_GITHUB_ID'                 # github.com/YOUR_GITHUB_ID
-  instagram = 'YOUR_INSTAGRAM_ID'           # instagram.com/YOUR_INSTAGRAM_ID
-  linkedin = 'YOUR_LINKEDIN_ID'             # linkedin.com/in/YOUR_LINKEDIN_ID
-  mastodon = 'YOUR_MASTODON_LINK'           # e.g. 'https://mastodon.instance/@xxx'
-  threads = '@YOUR_THREADS_ID'              # threads.net/@YOUR_THREADS_ID
-  bluesky = 'YOUR_BLUESKY_ID'               # https://bsky.app/profile/YOUR_BLUESKY_ID
-  rss = true                                # show rss icon
+  # profile card
+  avatar = "email@example.com" # or image URL
+  name = "Your Name"
+  bio = "Your bio"
 
-  # home page profile
-  avatar = 'GRAVATAR_EMAIL'                 # gravatar email or image url
-  name = 'YOUR_NAME'
-  bio = 'YOUR_BIO'
+  # behavior
+  disableHLJS = true
+  disablePostNavigation = true
+  monoDarkIcon = true
+  gravatarCdn = "https://cdn.v2ex.com/gravatar/"
+  math = true
+  localKatex = false
+  graphCommentId = "YOUR_GRAPHCOMMENT_ID"
+  direction = "rtl"
 
-
-  # misc
-  disableHLJS = true                        # disable highlight.js
-  disablePostNavigation = true              # disable post navigation
-  monoDarkIcon = false                       # show monochrome dark mode icon
-  gravatarCdn = 'GRAVATAR_CDN_LINK'         # e.g. 'https://cdn.v2ex.com/gravatar/'
-  math = true                               # enable KaTeX math typesetting globally
-  localKatex = false                        # use local KaTeX js/css instead of CDN
-  graphCommentId = "YOUR_GRAPH_COMMENT_ID"  # use graph comment (disqus alternative)
-  favicon = "favicon.ico"                   # customize the default favicon
-  appleTouchIcon = "apple-touch-icon.png"   # customize the default Apple touch icon
-
-  # RTL supprot
-  direction = "rtl"                         # RTL support for Right-to-left languages
-
-  # giscus
-[params.giscus]
-  repo = 'YOUR_GISCUS_REPO'                 # see https://giscus.app for more details
-  repoId = 'YOUR_GISCUS_REPO_ID'
-  category = 'YOUR__GISCUS_CATEGORY'
-  categoryId = 'YOUR_GISCUS_CATEGORY_ID'
-  mapping = 'pathname'
-  theme = 'light'
-  lang = 'zh-CN'
+  [params.giscus]
+    repo = "owner/repo"
+    repoId = "..."
+    category = "General"
+    categoryId = "..."
+    mapping = "pathname"
+    strict = "1"
+    reactionsEnabled = "0"
+    emitMetadata = "0"
+    inputPosition = "top"
+    theme = "light"
+    lang = "en"
+    loading = "lazy"
 ```
 
-Available options to front matter:
+Front matter:
 
 ```toml
-comments = false                            # disable comments for a specific page
-math = true                                 # enable KaTeX math typesetting for a specific page
+comments = false
+math = true
+mermaid = true
 ```
 
 ## Install
 
-### As git submodule
-
-Inside the folder of your Hugo project, run:
+As a git submodule:
 
 ```bash
-git submodule add https://github.com/dhruv0000/hugo-dhruv-archives-theme themes/dhruv-archives-theme
+git submodule add https://github.com/dhruv0000/hugo-dhruv-archives-theme themes/hugo-dhruv-archives
 ```
 
-Open `config.toml`(or `hugo.toml`), change `theme` to `"dhruv-archives-theme"`:
+Then in your `hugo.toml`:
 
 ```toml
-theme = "dhruv-archives-theme"
+theme = "hugo-dhruv-archives"
 ```
 
-Then run:
+Run:
 
 ```bash
 hugo server
 ```
 
-For more information, please read the [official guide](https://gohugo.io/getting-started/quick-start/#configure-the-site) of Hugo.
-
 ## License
 
-[MIT License](https://github.com/dhruv0000//blob/main/LICENSE) (c) [dhruv0000](https://dhruv-archives.com/)
+[MIT](./LICENSE) (c) [Dhruv Patel](https://dhruv-archives.com/)

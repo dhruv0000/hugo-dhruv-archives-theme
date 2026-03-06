@@ -23,6 +23,7 @@ First, the philosophy. Most customizations are exposed as `params.*` in your `hu
 - Animated theme toggle with custom assets (`/static/button/*.webp`)
 - Flexoki-inspired light/dark background palette controlled by `params.color`
 - Grid-style post listing on list/home pages
+- Optional local-first `Playground` hub with tabbed puzzle modes, progress tracking, and an instrument tuner
 - [Private / Protected Posts (Optional)](#private--protected-posts-optional): build-time encryption + in-browser unlock UI (see section below)
 
 ## Screenshots
@@ -119,6 +120,32 @@ title = "Your Site Title"
     title = "./whoami"
     description = "Short blurb for the homepage."
 
+  [params.puzzles]
+    enabled = true
+    navLabel = "Playground"
+    title = "Playground"
+    description = "Runtime puzzles, an instrument tuner, and a local progress desk."
+
+    [params.puzzles.modes.equationGrid]
+      enabled = true
+      label = "Equation Grid"
+      order = 1
+
+    [params.puzzles.modes.cageLogic]
+      enabled = true
+      label = "Cage Logic"
+      order = 2
+
+    [params.puzzles.modes.game2048]
+      enabled = true
+      label = "2048"
+      order = 3
+
+    [params.puzzles.modes.instrumentTuner]
+      enabled = true
+      label = "Instrument Tuner"
+      order = 4
+
   # optional postcard crop focus (per file)
   [params.postcardFocus]
     [params.postcardFocus."cowboy-bright.webm"]
@@ -131,7 +158,22 @@ title = "Your Site Title"
     name = "Blog"
     url = "/blog/"
     weight = 10
+
+  [[menu.main]]
+    identifier = "puzzles"
+    name = "Playground"
+    url = "/puzzles/"
+    weight = 10
 ```
+
+## Playground Hub
+
+The theme can render an optional `/puzzles/` playground page driven by `params.puzzles`.
+
+- Shared progress desk stored in browser-local storage
+- Tabbed puzzle modules (`Equation Grid`, `Cage Logic`, `2048`)
+- Instrument tuner with preset tunings, custom note sequences, mic capture, and local progress tracking
+- Nav item visibility is tied to enabled playground modes
 
 ## Additional Supported Params (From old template)
 

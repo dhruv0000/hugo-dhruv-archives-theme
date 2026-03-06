@@ -86,13 +86,13 @@
   </script>
 
   <div
-    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none">
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:z-[60] lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none">
     {{ $url := .RelPermalink }}<!---->
     {{ with site.Menus.main }}
     <nav class="custom-header-menu lg:ml-8 lg:flex lg:flex-row lg:items-center">
       {{ range . }}
       {{ if or (ne .Identifier "puzzles") $showPuzzlesNav }}
-      <a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal custom-header-nav"
+      <a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal custom-header-nav{{ if eq .Identifier `puzzles` }} custom-header-nav-playground{{ end }}"
         href="{{ .URL }}">{{ .Name }}</a>
       {{ end }}
       {{ end }}
@@ -100,18 +100,270 @@
     {{ end }}<!---->
 
     {{ with $.Scratch.Get "social_list" }}
-    <nav
-      class="mt-12 flex justify-center space-x-8 rtl:space-x-reverse dark:invert ltr:lg:ml-12 rtl:lg:mr-12 lg:mt-0 lg:items-center"
-      style="margin-left: 1rem;">
-      {{ range . }}<!---->
-      <a class="h-7 w-7 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-4 lg:w-4 custom-header-social"
-        style="--url: url(./{{ . }}.svg); background-size: 1rem;"
-        href="{{ if eq . `rss` }}{{ `index.xml` | absURL }}{{ else if eq . `mastodon` }}{{ index site.Params . }}{{ else }}{{ if eq . `threads` }}https://threads.net/{{ else if eq . `bluesky` }}https://bsky.app/profile/{{ else if eq . `behance` }}https://behance.net/{{ else }}https://{{ . }}.com/{{ end }}{{ if eq . `linkedin` }}in/{{ end }}{{ index site.Params . }}{{ end }}"
-        target="_blank" rel="{{ if eq . `rss` }}alternate{{ else }}me{{ end }}">
-        {{ . }}
-      </a>
-      {{ end }}<!---->
+    {{ $socials := . }}
+    {{ $socialCount := len $socials }}
+    {{ $firstSocial := index $socials 0 }}
+    {{ $firstHref := "" }}
+    {{ if eq $firstSocial `rss` }}
+    {{ $firstHref = `index.xml` | absURL }}
+    {{ else if eq $firstSocial `mastodon` }}
+    {{ $firstHref = index site.Params $firstSocial }}
+    {{ else if eq $firstSocial `threads` }}
+    {{ $firstHref = print `https://threads.net/` (index site.Params $firstSocial) }}
+    {{ else if eq $firstSocial `bluesky` }}
+    {{ $firstHref = print `https://bsky.app/profile/` (index site.Params $firstSocial) }}
+    {{ else if eq $firstSocial `behance` }}
+    {{ $firstHref = print `https://behance.net/` (index site.Params $firstSocial) }}
+    {{ else if eq $firstSocial `linkedin` }}
+    {{ $firstHref = print `https://linkedin.com/in/` (index site.Params $firstSocial) }}
+    {{ else }}
+    {{ $firstHref = print `https://` $firstSocial `.com/` (index site.Params $firstSocial) }}
+    {{ end }}
+    {{ $firstLabel := $firstSocial }}
+    {{ if eq $firstSocial `github` }}
+    {{ $firstLabel = `GitHub` }}
+    {{ else if eq $firstSocial `linkedin` }}
+    {{ $firstLabel = `LinkedIn` }}
+    {{ else if eq $firstSocial `bluesky` }}
+    {{ $firstLabel = `Bluesky` }}
+    {{ else if eq $firstSocial `rss` }}
+    {{ $firstLabel = `RSS` }}
+    {{ else }}
+    {{ $firstLabel = title $firstSocial }}
+    {{ end }}
+    <nav class="custom-social-nav mt-12 flex justify-center ltr:lg:ml-14 rtl:lg:mr-14 lg:mt-0 lg:items-center"
+      aria-label="Social links">
+      <div class="custom-social-cluster" data-social-cluster data-open="false" data-preview="false"
+        style="--social-count: {{ $socialCount }};">
+        <a class="custom-social-trigger" data-social-trigger href="{{ $firstHref }}" target="_blank"
+          rel="{{ if eq $firstSocial `rss` }}alternate{{ else }}me{{ end }}"
+          aria-label="Open social links, currently showing {{ $firstLabel }}" aria-expanded="false">
+          <span class="custom-social-trigger-icon" data-social-display
+            style="--social-current-url: url(./{{ $firstSocial }}.svg);"></span>
+        </a>
+        <div class="custom-social-items">
+          {{ range $index, $social := $socials }}<!---->
+          {{ $href := "" }}
+          {{ if eq $social `rss` }}
+          {{ $href = `index.xml` | absURL }}
+          {{ else if eq $social `mastodon` }}
+          {{ $href = index site.Params $social }}
+          {{ else if eq $social `threads` }}
+          {{ $href = print `https://threads.net/` (index site.Params $social) }}
+          {{ else if eq $social `bluesky` }}
+          {{ $href = print `https://bsky.app/profile/` (index site.Params $social) }}
+          {{ else if eq $social `behance` }}
+          {{ $href = print `https://behance.net/` (index site.Params $social) }}
+          {{ else if eq $social `linkedin` }}
+          {{ $href = print `https://linkedin.com/in/` (index site.Params $social) }}
+          {{ else }}
+          {{ $href = print `https://` $social `.com/` (index site.Params $social) }}
+          {{ end }}
+          {{ $label := $social }}
+          {{ if eq $social `github` }}
+          {{ $label = `GitHub` }}
+          {{ else if eq $social `linkedin` }}
+          {{ $label = `LinkedIn` }}
+          {{ else if eq $social `bluesky` }}
+          {{ $label = `Bluesky` }}
+          {{ else if eq $social `rss` }}
+          {{ $label = `RSS` }}
+          {{ else }}
+          {{ $label = title $social }}
+          {{ end }}
+          <a class="custom-social-item custom-header-social" data-social-item
+            data-social-url="url(./{{ $social }}.svg)" data-social-label="{{ $label }}" data-social-href="{{ $href }}"
+            style="--social-index: {{ $index }}; --social-url: url(./{{ $social }}.svg);"
+            href="{{ $href }}" target="_blank" rel="{{ if eq $social `rss` }}alternate{{ else }}me{{ end }}"
+            aria-label="{{ $label }}">
+            {{ $label }}
+          </a>
+          {{ end }}<!---->
+        </div>
+      </div>
     </nav>
     {{ end }}<!---->
   </div>
+
+  <script>
+    (() => {
+      const socialClusters = document.querySelectorAll('[data-social-cluster]');
+
+      socialClusters.forEach((cluster) => {
+        const trigger = cluster.querySelector('[data-social-trigger]');
+        const display = cluster.querySelector('[data-social-display]');
+        const items = [...cluster.querySelectorAll('[data-social-item]')];
+        const prefersTapMode = window.matchMedia('(hover: none), (pointer: coarse)');
+
+        if (!trigger || !display || items.length === 0) {
+          return;
+        }
+
+        let currentIndex = 0;
+        let swapTimer = null;
+        let closeTimer = null;
+
+        const clearCloseTimer = () => {
+          window.clearTimeout(closeTimer);
+        };
+
+        const buildSlots = (count) => {
+          const rightCount = Math.floor(count / 2);
+          const leftCount = count - rightCount;
+          const slots = [];
+
+          for (let offset = leftCount; offset >= 1; offset -= 1) {
+            slots.push(-offset);
+          }
+
+          for (let offset = 1; offset <= rightCount; offset += 1) {
+            slots.push(offset);
+          }
+
+          return slots;
+        };
+
+        const setOpen = (open) => {
+          clearCloseTimer();
+          cluster.dataset.open = open ? 'true' : 'false';
+          trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
+        const setPreview = (previewing) => {
+          cluster.dataset.preview = previewing ? 'true' : 'false';
+
+          if (cluster.dataset.open !== 'true') {
+            trigger.setAttribute('aria-expanded', previewing ? 'true' : 'false');
+          }
+        };
+
+        const schedulePreviewClose = () => {
+          clearCloseTimer();
+          closeTimer = window.setTimeout(() => {
+            if (cluster.dataset.open !== 'true') {
+              setPreview(false);
+            }
+          }, 380);
+        };
+
+        const updateDisplay = (index) => {
+          const item = items[index];
+          if (!item) {
+            return;
+          }
+
+          const nextUrl = item.dataset.socialUrl;
+          const nextHref = item.dataset.socialHref || item.getAttribute('href');
+          const nextLabel = item.dataset.socialLabel || 'Social links';
+          const nextRel = item.getAttribute('rel') || 'me';
+          const nextTarget = item.getAttribute('target') || '_blank';
+
+          display.classList.add('is-switching');
+          window.clearTimeout(swapTimer);
+          swapTimer = window.setTimeout(() => {
+            display.style.setProperty('--social-current-url', nextUrl);
+            trigger.setAttribute('href', nextHref);
+            trigger.setAttribute('rel', nextRel);
+            trigger.setAttribute('target', nextTarget);
+            trigger.setAttribute('aria-label', `Open social links, currently showing ${nextLabel}`);
+            display.classList.remove('is-switching');
+          }, 120);
+
+          const visibleItems = [];
+          items.forEach((socialItem, itemIndex) => {
+            const hidden = itemIndex === index;
+            socialItem.hidden = hidden;
+
+            if (!hidden) {
+              visibleItems.push(socialItem);
+            }
+          });
+
+          const slots = buildSlots(visibleItems.length);
+          visibleItems.forEach((socialItem, slotIndex) => {
+            socialItem.style.setProperty('--social-slot', slots[slotIndex] ?? slotIndex + 1);
+          });
+        };
+
+        const advanceIcon = () => {
+          if (
+            cluster.dataset.open === 'true' ||
+            cluster.dataset.preview === 'true' ||
+            cluster.matches(':hover') ||
+            cluster.matches(':focus-within')
+          ) {
+            return;
+          }
+
+          currentIndex = (currentIndex + 1) % items.length;
+          updateDisplay(currentIndex);
+        };
+
+        if (items.length > 1) {
+          window.setInterval(advanceIcon, 1800);
+        }
+
+        trigger.addEventListener('click', (event) => {
+          if (!prefersTapMode.matches) {
+            return;
+          }
+
+          if (cluster.dataset.open !== 'true') {
+            event.preventDefault();
+            event.stopPropagation();
+            setPreview(true);
+            setOpen(true);
+            return;
+          }
+
+          setPreview(false);
+          setOpen(false);
+        });
+
+        items.forEach((item) => {
+          item.addEventListener('click', () => {
+            setPreview(false);
+            setOpen(false);
+          });
+        });
+
+        document.addEventListener('click', (event) => {
+          if (!cluster.contains(event.target)) {
+            setPreview(false);
+            setOpen(false);
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            setPreview(false);
+            setOpen(false);
+            trigger.blur();
+          }
+        });
+
+        cluster.addEventListener('mouseleave', () => {
+          if (cluster.dataset.open !== 'true') {
+            schedulePreviewClose();
+          }
+        });
+
+        cluster.addEventListener('mouseenter', () => {
+          clearCloseTimer();
+          setPreview(true);
+        });
+
+        cluster.addEventListener('focusin', () => {
+          clearCloseTimer();
+          setPreview(true);
+        });
+
+        cluster.addEventListener('focusout', () => {
+          schedulePreviewClose();
+        });
+
+        updateDisplay(currentIndex);
+      });
+    })();
+  </script>
 </header>

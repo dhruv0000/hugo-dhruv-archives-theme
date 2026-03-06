@@ -40,6 +40,7 @@
     // dark theme
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     const btnDark = document.querySelector('.btn-dark');
+    const buttonAssetBase = '{{ `button/` | relURL }}';
     const lightBg = '{{ $bg_color }}'.replace(/"/g, '');
     const darkBg = '{{ $dark_bg_color | default "#131b14" }}'.replace(/"/g, '');
     const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -62,7 +63,7 @@
         void btnDark.offsetWidth;
         btnDark.classList.add(animationClass);
       } else {
-        btnDark.style.background = `url('button/${isDark ? 'dark-1' : 'bright-1'}.webp') center/cover no-repeat`;
+        btnDark.style.background = `url('${buttonAssetBase}${isDark ? 'dark-1' : 'bright-1'}.webp') center/cover no-repeat`;
       }
 
       btnDark.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');

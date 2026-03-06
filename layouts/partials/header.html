@@ -1,4 +1,14 @@
 <header class="mx-auto flex h-[4.5rem] max-w-[--w] px-8 lg:justify-center custom-header">
+  {{ $showPuzzlesNav := false }}
+  {{ with site.Params.puzzles }}
+    {{ if .enabled }}
+      {{ range $key, $mode := .modes }}
+        {{ if $mode.enabled }}
+          {{ $showPuzzlesNav = true }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
   <div class="relative z-50 ltr:mr-auto rtl:ml-auto flex items-center">
     <a class="-translate-y-[1px] text-2xl font-medium custom-header-title" href="{{ `` | absURL }}">{{ site.Title }}</a>
     <div class="btn-dark text-[0] ltr:ml-4 rtl:mr-4 h-button w-button shrink-0 cursor-pointer" role="button"
@@ -81,8 +91,10 @@
     {{ with site.Menus.main }}
     <nav class="custom-header-menu lg:ml-8 lg:flex lg:flex-row lg:items-center">
       {{ range . }}
+      {{ if or (ne .Identifier "puzzles") $showPuzzlesNav }}
       <a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal custom-header-nav"
         href="{{ .URL }}">{{ .Name }}</a>
+      {{ end }}
       {{ end }}
     </nav>
     {{ end }}<!---->

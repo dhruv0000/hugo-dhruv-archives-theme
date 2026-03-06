@@ -1,0 +1,57 @@
+{{ define "main" }}
+{{ $puzzles := site.Params.puzzles }}
+{{ $title := .Title }}
+{{ $description := .Description }}
+{{ $puzzleMeta := index .Params "puzzle-meta" }}
+{{ if $puzzles }}
+  {{ $title = $puzzles.title | default $title }}
+  {{ $description = $puzzles.description | default $description }}
+{{ end }}
+{{ $enabledModes := slice }}
+{{ if and $puzzles $puzzles.enabled }}
+  {{ range $key, $mode := $puzzles.modes }}
+    {{ if $mode.enabled }}
+      {{ $enabledModes = $enabledModes | append (dict
+        "key" $key
+        "label" ($mode.label | default $key)
+        "order" ($mode.order | default 999)
+      ) }}
+    {{ end }}
+  {{ end }}
+  {{ $enabledModes = sort $enabledModes "order" "asc" }}
+{{ end }}
+
+<section class="not-prose puzzles-page">
+  {{ if not (and $puzzles $puzzles.enabled) }}
+  <section class="puzzles-placeholder" aria-live="polite">
+    <h2>Playground is currently unavailable.</h2>
+    <p>The hub is disabled in site configuration.</p>
+  </section>
+  {{ else if eq (len $enabledModes) 0 }}
+  <section class="puzzles-placeholder" aria-live="polite">
+    <h2>No playground modes enabled right now.</h2>
+    <p>Enable at least one mode in <code>hugo.toml</code> to populate this hub.</p>
+  </section>
+  {{ else }}
+  {{ $appConfig := dict
+    "storageKey" "dhruv-archives:puzzles:v2"
+    "enabled" true
+    "title" $title
+    "description" $description
+    "modes" $puzzles.modes
+    "puzzleMeta" $puzzleMeta
+  }}
+  <div id="puzzles-app" class="puzzles-app-shell">
+    <script id="puzzles-config" type="application/json">{{ $appConfig | jsonify | safeHTML }}</script>
+    <section class="puzzles-playground">
+      <div class="puzzles-toolbar">
+        <nav id="puzzles-tabs" class="puzzles-tabs" aria-label="Puzzle modes"></nav>
+      </div>
+      <section id="puzzles-stage" class="puzzles-stage" aria-live="polite"></section>
+    </section>
+    <section id="puzzles-summary" class="puzzles-summary-shell" aria-live="polite"></section>
+  </div>
+  <script type="module" src="{{ `puzzles/app.mjs` | relURL }}"></script>
+  {{ end }}
+</section>
+{{ end }}

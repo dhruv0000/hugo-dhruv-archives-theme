@@ -11,6 +11,7 @@
     "dev:open": "open http://192.168.0.101:1313/",
     "build:go": "cp exampleSite/go.default.mod exampleSite/go.mod",
     "build:generate": "hugo --gc --minify --themesDir=../.. --source=exampleSite --config=go.toml,config.toml",
+    "test:puzzles": "node --test ./tests/puzzles.test.mjs",
     "dev": "killall hugo & pnpm dev:tailwind & pnpm dev:server & pnpm dev:open",
     "build": "pnpm build:go & pnpm build:generate"
   },

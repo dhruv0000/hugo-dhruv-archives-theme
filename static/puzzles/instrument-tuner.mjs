@@ -494,7 +494,7 @@ export function createInstrumentTunerModule() {
     const selected = resolveSelectedTuning(options, currentTuningId) || PRESET_TUNINGS[0];
     const header = renderPuzzlePanelHeader({
       title: 'Instrument Tuner',
-      description: 'Pick a preset or save a custom note sequence, allow the mic, and lock each string once to count a full local tuning.',
+      description: 'Pick a preset, allow the mic, and lock each string once to count a full local tuning. Advanced options let you save a custom note sequence locally.',
       levelPicker: `
         <div class="tuner-level-placeholder">
           <span>${escapeHtml(selected.label)}</span>
@@ -503,12 +503,10 @@ export function createInstrumentTunerModule() {
       statsLabel: 'Instrument tuner stats',
       rows: [
         [
-          { label: 'Mic starts', value: modeState.plays || 0 },
-          { label: 'Tunings', value: modeState.completedTunings || 0 },
+          { label: 'Selected', value: escapeHtml(modeState.selectedInstrumentLabel || selected.label) },
         ],
         [
-          { label: 'Selected', value: escapeHtml(modeState.selectedInstrumentLabel || selected.label) },
-          { label: 'Notes', value: escapeHtml(selected.notes.join(' ')) },
+          { label: 'Notes', value: escapeHtml(selected.notes.join(' ')), valueColSpan: 3 },
         ],
       ],
     });
@@ -533,29 +531,40 @@ export function createInstrumentTunerModule() {
             </div>
             <p class="tuner-status" data-tuner-status>${escapeHtml(statusMessage)}</p>
             <p class="tuner-error" data-tuner-error hidden></p>
-            <form class="tuner-custom-form" data-custom-form>
-              <label class="tuner-field">
-                <span>Custom tuning name</span>
-                <input
-                  class="tuner-input"
-                  type="text"
-                  name="label"
-                  value="${escapeHtml(customName)}"
-                  placeholder="Open D guitar"
-                />
-              </label>
-              <label class="tuner-field">
-                <span>Ordered notes</span>
-                <input
-                  class="tuner-input"
-                  type="text"
-                  name="notes"
-                  value="${escapeHtml(customNotes)}"
-                  placeholder="D2 A2 D3 F#3 A3 D4"
-                />
-              </label>
-              <button type="submit" class="puzzle-button puzzle-button-secondary">Save custom tuning</button>
-            </form>
+            <details class="tuner-advanced-panel">
+              <summary class="tuner-advanced-toggle">
+                <span class="tuner-advanced-copy">
+                  <strong>Advanced options</strong>
+                  <em>Create and save a custom tuning</em>
+                </span>
+                <span class="tuner-advanced-chevron" aria-hidden="true">v</span>
+              </summary>
+              <div class="tuner-advanced-body">
+                <form class="tuner-custom-form" data-custom-form>
+                  <label class="tuner-field">
+                    <span>Custom tuning name</span>
+                    <input
+                      class="tuner-input"
+                      type="text"
+                      name="label"
+                      value="${escapeHtml(customName)}"
+                      placeholder="Open D guitar"
+                    />
+                  </label>
+                  <label class="tuner-field">
+                    <span>Ordered notes</span>
+                    <input
+                      class="tuner-input"
+                      type="text"
+                      name="notes"
+                      value="${escapeHtml(customNotes)}"
+                      placeholder="D2 A2 D3 F#3 A3 D4"
+                    />
+                  </label>
+                  <button type="submit" class="puzzle-button puzzle-button-secondary">Save custom tuning</button>
+                </form>
+              </div>
+            </details>
           </section>
           <section class="tuner-meter-card">
             <div class="tuner-meter-head">

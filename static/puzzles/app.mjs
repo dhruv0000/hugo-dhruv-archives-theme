@@ -36,14 +36,6 @@ export const MODE_REGISTRY = Object.freeze({
   },
 });
 
-function pickMessage(options, seed = 0) {
-  if (!options.length) {
-    return '';
-  }
-
-  return options[Math.abs(seed) % options.length];
-}
-
 function getModeProgressTotal(mode, modeState = {}) {
   if (mode.id === 'instrument-tuner') {
     return modeState.completedTunings || modeState.solves || 0;
@@ -59,108 +51,6 @@ function getModeMatrixCounts(mode, modeState = {}) {
   }
 
   return LEVEL_KEYS.map((level) => modeState.solvesByLevel?.[level] || 0);
-}
-
-function getModeSeed(mode, modeState = {}) {
-  return (
-    mode.order * 17 +
-    (modeState.plays || 0) * 7 +
-    (modeState.solves || 0) * 11 +
-    (modeState.completedSessions || 0) * 13 +
-    (modeState.bestTile || 0) +
-    getModeProgressTotal(mode, modeState) * 19
-  );
-}
-
-function getWeakestLevel(mode, modeState = {}) {
-  const levels = mode.levels || [];
-  if (!levels.length) {
-    return null;
-  }
-
-  return levels
-    .map((level) => ({
-      level,
-      count: modeState.solvesByLevel?.[level.key] || 0,
-    }))
-    .sort((left, right) => left.count - right.count || LEVEL_KEYS.indexOf(left.level.key) - LEVEL_KEYS.indexOf(right.level.key))[0];
-}
-
-function getUndiscoveredNudge(mode, modeState = {}) {
-  const seed = getModeSeed(mode, modeState);
-
-  if (mode.id === 'instrument-tuner') {
-    return pickMessage(
-      [
-        'Open Instrument Tuner and allow mic access to track a first session.',
-        'Instrument Tuner is still untouched. Start one mic session here.',
-        'Give Instrument Tuner a first run so the desk can log it locally.',
-      ],
-      seed,
-    );
-  }
-
-  return pickMessage(
-    [
-      `Open ${mode.label} and mark it discovered.`,
-      `${mode.label} is still fresh. Give it a first run.`,
-      `Start ${mode.label} once so the desk can track it locally.`,
-    ],
-    seed,
-  );
-}
-
-function getLevelNudge(mode, modeState = {}) {
-  const seed = getModeSeed(mode, modeState);
-
-  if (mode.id === 'instrument-tuner') {
-    const tuningLabel = modeState.selectedInstrumentLabel || 'your next instrument';
-    const total = getModeProgressTotal(mode, modeState);
-    return pickMessage(
-      [
-        `Instrument Tuner still needs a full ${tuningLabel} pass.`,
-        `Queue up another full tune on ${tuningLabel}.`,
-        `${tuningLabel} is next on deck for a clean full tuning.`,
-      ],
-      seed + total,
-    );
-  }
-
-  const weakest = getWeakestLevel(mode, modeState);
-  const levelLabel = weakest?.level?.label || 'Easy';
-  const total = weakest?.count || 0;
-
-  if (mode.id === '2048') {
-    const targetTile = weakest?.level?.targetTile || 512;
-    return pickMessage(
-      [
-        `${mode.label} is lightest on ${levelLabel}. Chase a ${targetTile} tile next.`,
-        `Your next cleanest gain is ${mode.label} on ${levelLabel}. Push to ${targetTile}.`,
-        `${mode.label} needs more ${levelLabel} clears. Build up to ${targetTile}.`,
-      ],
-      seed + total,
-    );
-  }
-
-  return pickMessage(
-    [
-      `${mode.label} is lowest on ${levelLabel}. Queue up another board there.`,
-      `The thinnest history is ${mode.label} on ${levelLabel}. Solve one more.`,
-      `${mode.label} needs another ${levelLabel} clear to balance the desk.`,
-    ],
-    seed + total,
-  );
-}
-
-function getAllProgressNudge(enabledModes, state) {
-  return pickMessage(
-    [
-      'Every enabled mode has local progress logged in this browser.',
-      'The desk is populated across the full playground here.',
-      'All enabled tabs have at least one finished trail locally.',
-    ],
-    enabledModes.length + Object.keys(state.modes || {}).length,
-  );
 }
 
 function getModeStats(mode, modeState) {
@@ -205,14 +95,6 @@ function getModeStats(mode, modeState) {
   };
 }
 
-function modeHasDeskCoverage(mode, modeState = {}) {
-  if (!mode.usesLevels) {
-    return getModeProgressTotal(mode, modeState) > 0;
-  }
-
-  return mode.levels.every((level) => (modeState.solvesByLevel?.[level.key] || 0) > 0);
-}
-
 export function getEnabledModes(config) {
   if (!config?.enabled) {
     return [];
@@ -250,39 +132,7 @@ export function resolveActiveModeId(hash, enabledModes) {
   return matchedMode ? matchedMode.id : enabledModes[0].id;
 }
 
-export function getNudge(enabledModes, state) {
-  if (!enabledModes.length) {
-    return 'No modes are enabled right now.';
-  }
-
-  for (const mode of enabledModes) {
-    const modeState = state.modes?.[mode.id] || {};
-    if (!modeState.discover) {
-      return getUndiscoveredNudge(mode, modeState);
-    }
-  }
-
-  const weakestMode = enabledModes
-    .map((mode) => ({
-      mode,
-      modeState: state.modes?.[mode.id] || {},
-      total: getModeProgressTotal(mode, state.modes?.[mode.id] || {}),
-    }))
-    .sort((left, right) => left.total - right.total || left.mode.order - right.mode.order)[0];
-
-  if (!weakestMode) {
-    return 'No local progress yet.';
-  }
-
-  if (enabledModes.every((mode) => modeHasDeskCoverage(mode, state.modes?.[mode.id] || {}))) {
-    return getAllProgressNudge(enabledModes, state);
-  }
-
-  return getLevelNudge(weakestMode.mode, weakestMode.modeState);
-}
-
 function renderSummary(summaryRoot, enabledModes, state, summaryExpanded = true) {
-  const nudge = getNudge(enabledModes, state);
   const statsMarkup = enabledModes
     .map((mode) => {
       const modeState = state.modes?.[mode.id] || {};
@@ -327,14 +177,13 @@ function renderSummary(summaryRoot, enabledModes, state, summaryExpanded = true)
     <details class="puzzles-summary-card"${summaryExpanded ? ' open' : ''}>
       <summary class="puzzles-summary-toggle">
         <div>
-          <p class="puzzles-section-kicker">${nudge}</p>
           <h2 class="puzzles-section-title">Progress desk</h2>
         </div>
         <span class="puzzles-summary-chevron" aria-hidden="true">▾</span>
       </summary>
       <div class="puzzles-summary-content">
         <div class="puzzles-summary-heading">
-          <p class="puzzles-summary-lead">This desk lives only in this browser cache. It tracks which tabs you have discovered and how many solves or full tuning sessions you logged here, then nudges you toward <em>${nudge}</em>.</p>
+          <p class="puzzles-summary-lead">This desk lives only in this browser cache. It tracks which tabs you have discovered and how many solves or full tuning sessions you logged here.</p>
         </div>
         <div class="puzzles-summary-body">
           <div class="puzzles-matrix-card">

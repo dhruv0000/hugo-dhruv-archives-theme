@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { getEnabledModes, getNudge, resolveActiveModeId } from '../static/puzzles/app.mjs';
+import { getEnabledModes, resolveActiveModeId } from '../static/puzzles/app.mjs';
 import { CAGE_LOGIC_SEEDS, countCageLogicSolutions, findColumnConflicts, findRowConflicts, generateCageLogic, isSolvedCageLogicBoard, validateCage } from '../static/puzzles/cage-logic.mjs';
 import { EQUATION_GRID_SEEDS, countEquationGridSolutions, generateEquationGrid, validateEquationGridBoard } from '../static/puzzles/equation-grid.mjs';
 import { addRandomTile, isGameOver, slideBoard } from '../static/puzzles/game-2048.mjs';
@@ -361,26 +361,6 @@ test('2048 level solves increment once per recorded level and session stats pers
   assert.equal(modeState.solvesByLevel.medium, 1);
   assert.equal(modeState.completedSessions, 1);
   assert.equal(modeState.bestTile, 1024);
-});
-
-test('Nudge prioritizes undiscovered modes before weaker level counts', () => {
-  const modes = getEnabledModes({
-    enabled: true,
-    modes: {
-      equationGrid: { enabled: true, order: 1, label: 'Equation Grid' },
-      game2048: { enabled: true, order: 2, label: '2048' },
-      instrumentTuner: { enabled: false, order: 3, label: 'Instrument Tuner' },
-    },
-  });
-
-  const nudge = getNudge(modes, {
-    modes: {
-      'equation-grid': { discover: true, solvesByLevel: { easy: 1, medium: 1, hard: 1 } },
-      '2048': { discover: false, solvesByLevel: { easy: 0, medium: 0, hard: 0 } },
-    },
-  });
-
-  assert.match(nudge, /2048/i);
 });
 
 test('Instrument tuner is included in enabled mode ordering', () => {

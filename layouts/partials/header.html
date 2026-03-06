@@ -39,50 +39,68 @@
 
     // dark theme
     const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const btnDark = document.querySelector('.btn-dark');
     const lightBg = '{{ $bg_color }}'.replace(/"/g, '');
     const darkBg = '{{ $dark_bg_color | default "#131b14" }}'.replace(/"/g, '');
-    const setDark = (isDark) => {
-      metaTheme.setAttribute('content', isDark ? darkBg : lightBg);
-      htmlClass[isDark ? 'add' : 'remove']('dark');
-      localStorage.setItem('dark', isDark);
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    const getStoredDark = () => localStorage.getItem('dark');
+    const getResolvedDark = () => {
+      const storedDark = getStoredDark();
+      return storedDark === null ? darkScheme.matches : storedDark === 'true';
+    };
 
-      const btnDark = document.querySelector('.btn-dark');
-      if (btnDark) {
+    const syncDarkButton = (isDark, animationClass = '') => {
+      if (!btnDark) {
+        return;
+      }
+
+      btnDark.classList.remove('anim-dark', 'anim-light');
+
+      if (animationClass) {
+        btnDark.style.background = '';
+        // Force reflow so repeated toggles can replay the same animation class.
+        void btnDark.offsetWidth;
+        btnDark.classList.add(animationClass);
+      } else {
         btnDark.style.background = `url('button/${isDark ? 'dark-1' : 'bright-1'}.webp') center/cover no-repeat`;
       }
+
+      btnDark.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    };
+
+    const setDark = (isDark, { persist = true, animationClass = '' } = {}) => {
+      metaTheme.setAttribute('content', isDark ? darkBg : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+
+      if (persist) {
+        localStorage.setItem('dark', String(isDark));
+      }
+
+      syncDarkButton(isDark, animationClass);
     };
 
     // init
-    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-    const goingDark = localStorage.getItem('dark') !== 'true';
-    if (htmlClass.contains('dark')) {
-      const darkVal = localStorage.getItem('dark');
-      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
-
-    } else {
-      const darkVal = localStorage.getItem('dark');
-      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
-    }
+    setDark(getResolvedDark(), {
+      persist: getStoredDark() !== null,
+    });
 
     // listen system
     darkScheme.addEventListener('change', (event) => {
-      setDark(goingDark);
+      if (getStoredDark() === null) {
+        setDark(event.matches, { persist: false });
+      }
     });
 
     // manual switch
-    const btnDark = document.querySelector('.btn-dark');
-    btnDark.classList.add(!goingDark ? 'anim-dark' : 'anim-light');
-
-    btnDark.addEventListener('click', () => {
-      const goingDark = localStorage.getItem('dark') !== 'true';
-      setDark(goingDark);
-
-      // Remove any leftover animations
-      btnDark.classList.remove('anim-dark', 'anim-light');
-
-      // If we are going dark, run the "dark" animation; else run the "light" animation
-      btnDark.classList.add(goingDark ? 'anim-dark' : 'anim-light');
-    });
+    if (btnDark) {
+      btnDark.addEventListener('click', () => {
+        const nextDark = !getResolvedDark();
+        setDark(nextDark, {
+          persist: true,
+          animationClass: nextDark ? 'anim-dark' : 'anim-light',
+        });
+      });
+    }
   </script>
 
   <div

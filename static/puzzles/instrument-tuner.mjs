@@ -529,7 +529,6 @@ export function createInstrumentTunerModule() {
             <div class="tuner-button-row">
               <button type="button" class="puzzle-button" data-tuner-toggle>${isListening ? 'Stop mic' : 'Start mic'}</button>
             </div>
-            <p class="tuner-status" data-tuner-status>${escapeHtml(statusMessage)}</p>
             <p class="tuner-error" data-tuner-error hidden></p>
             <details class="tuner-advanced-panel">
               <summary class="tuner-advanced-toggle">
@@ -594,6 +593,7 @@ export function createInstrumentTunerModule() {
               </div>
               <span>+50</span>
             </div>
+            <p class="tuner-status" data-tuner-status>${escapeHtml(statusMessage)}</p>
             <ul class="tuner-string-list" data-tuner-strings></ul>
           </section>
         </div>

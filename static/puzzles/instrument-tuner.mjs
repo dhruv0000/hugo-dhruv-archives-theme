@@ -452,11 +452,11 @@ export function createInstrumentTunerModule() {
     }
     if (heardNode) {
       heardNode.textContent = lockedTarget
-        ? `Locked to ${lockedTarget.note}`
+        ? `Locked ${lockedTarget.note}`
         : isHeldReading
-          ? 'Holding last heard position'
+          ? 'Held reading'
           : isListening
-            ? 'Live input'
+            ? 'Live'
             : 'Idle';
     }
     if (needleNode) {

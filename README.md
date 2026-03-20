@@ -2,6 +2,9 @@
 
 Custom Hugo theme for [dhruv-archives.com](https://dhruv-archives.com) with modular, param-driven customization and a redesigned homepage UI.
 
+## Credits
+
+Built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper). I disabled the "github" fork updates connection because the repo has comptletely diverged from origial code. But i have still tried to keep the history commits alive. Credits where due :)
 
 ## My Bits and Bobs
 
@@ -303,9 +306,6 @@ Sources:
 - MDN SubtleCrypto.deriveKey (PBKDF2/AES-GCM): https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey
 - MDN AesGcmParams (IV requirements): https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams
 
-## Credits
-
-Built on top of [hugo-paper](https://github.com/nanxiaobei/hugo-paper).
 
 ## License
 

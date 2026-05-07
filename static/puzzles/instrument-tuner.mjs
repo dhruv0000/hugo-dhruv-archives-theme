@@ -415,7 +415,7 @@ export function createInstrumentTunerModule() {
     const listNode = root.querySelector('[data-tuner-strings]');
     const lockedTarget = getLockedTarget();
     const effectiveReading = targetInfo || lastStableReading;
-    const guidance = getPitchGuidance(effectiveReading?.cents);
+    const guidance = getPitchGuidance(effectiveReading?.meterCents ?? effectiveReading?.cents);
     const isHeldReading = !targetInfo && Boolean(lastStableReading) && isListening;
 
     if (statusNode) {
@@ -460,7 +460,7 @@ export function createInstrumentTunerModule() {
             : 'Idle';
     }
     if (needleNode) {
-      needleNode.style.left = `${getMeterOffset(effectiveReading?.cents)}%`;
+      needleNode.style.left = `${getMeterOffset(effectiveReading?.meterCents ?? effectiveReading?.cents)}%`;
     }
     if (meterNode) {
       meterNode.dataset.state = guidance.state;
@@ -809,11 +809,15 @@ export function createInstrumentTunerModule() {
     const smoothedFrequency = median(recentFrequencies) || frequency;
     detectedFrequency = smoothedFrequency;
     detectedNote = frequencyToNoteName(smoothedFrequency) || '—';
+    // cents from the nearest chromatic note — used for the meter display so the
+    // needle never jumps when the target auto-advances to the next string
+    const meterCents = centsBetween(smoothedFrequency, noteNameToFrequency(detectedNote));
     const lockedTarget = getLockedTarget();
     targetInfo = lockedTarget
       ? {
           target: lockedTarget,
           cents: centsBetween(smoothedFrequency, lockedTarget.frequency),
+          meterCents,
         }
       : findClosestTuningTarget(tuningTargets, smoothedFrequency, {
           completed,
@@ -828,10 +832,12 @@ export function createInstrumentTunerModule() {
     }
 
     const { target, cents } = targetInfo;
+    targetInfo = { target, cents, meterCents };
     lastHeardAt = Date.now();
     lastStableReading = {
       target,
       cents,
+      meterCents,
       frequency: smoothedFrequency,
       detectedNote,
       heardAt: lastHeardAt,

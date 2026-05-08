@@ -31,9 +31,15 @@ const CENTERED_CENTS_THRESHOLD = 3;
 const READY_CENTS_THRESHOLD = 5;
 const HOLD_TO_MARK_MS = 3000;
 const MAX_METER_CENTS = 50;
-const FINE_METER_CENTS = 5;
 const HELD_GUIDANCE_MS = 2500;
 const DETECTOR_BUFFER_SIZE = 4096;
+const POLYGRAPH_HISTORY_MS = 4000;
+const POLYGRAPH_SAMPLE_RATE = 20;
+const POLYGRAPH_SAMPLE_INTERVAL_MS = Math.round(1000 / POLYGRAPH_SAMPLE_RATE);
+const POLYGRAPH_HISTORY_SAMPLES = Math.round((POLYGRAPH_HISTORY_MS / 1000) * POLYGRAPH_SAMPLE_RATE);
+const POLYGRAPH_WIDTH = 420;
+const POLYGRAPH_HEIGHT = 180;
+const POLYGRAPH_GRID_LEVELS = Object.freeze([50, 25, 10, 5, 0, -5, -10, -25, -50]);
 const MIN_DISPLAY_CLARITY = 0.8;
 const MIN_DISPLAY_RMS = 0.0025;
 const MIN_PITCH_CLARITY = 0.92;
@@ -479,13 +485,140 @@ function resolveSelectedTuning(options, tuningId) {
   return options.find((entry) => entry.id === tuningId) || options[0] || null;
 }
 
-function getMeterOffset(cents, range = MAX_METER_CENTS) {
+function clampDisplayCents(cents, range = MAX_METER_CENTS) {
   if (!Number.isFinite(cents)) {
-    return 50;
+    return null;
   }
 
-  const clamped = Math.max(-range, Math.min(range, cents));
-  return ((clamped + range) / (range * 2)) * 100;
+  return Math.max(-range, Math.min(range, cents));
+}
+
+function toPolygraphY(cents, { height = POLYGRAPH_HEIGHT, range = MAX_METER_CENTS } = {}) {
+  const clamped = clampDisplayCents(cents, range);
+  if (!Number.isFinite(clamped)) {
+    return null;
+  }
+
+  return ((range - clamped) / (range * 2)) * height;
+}
+
+function formatSvgNumber(value) {
+  return Number.parseFloat(value.toFixed(2)).toString();
+}
+
+function getPolygraphGridMarkup() {
+  return POLYGRAPH_GRID_LEVELS
+    .map((level) => {
+      const y = formatSvgNumber(toPolygraphY(level));
+      const className = level === 0 ? ' is-center' : Math.abs(level) >= 25 ? ' is-major' : '';
+      return `<line class="tuner-polygraph-grid-line${className}" x1="0" y1="${y}" x2="${POLYGRAPH_WIDTH}" y2="${y}"></line>`;
+    })
+    .join('');
+}
+
+function getPolygraphLabelMarkup() {
+  return POLYGRAPH_GRID_LEVELS
+    .map((level) => {
+      const top = ((MAX_METER_CENTS - level) / (MAX_METER_CENTS * 2)) * 100;
+      const value = `${level > 0 ? '+' : ''}${level}`;
+      const className = level === 0 ? ' is-center' : '';
+      return `<span class="tuner-polygraph-label${className}" style="top:${top.toFixed(2)}%">${value}</span>`;
+    })
+    .join('');
+}
+
+function createPolygraphSample(frame, time = Date.now()) {
+  if (!frame?.chromatic || !Number.isFinite(frame?.frequency) || !frame.classification?.precise) {
+    return null;
+  }
+
+  return {
+    time,
+    cents: clampDisplayCents(frame.chromatic.cents),
+    note: frame.chromatic.note,
+    state: frame.classification.precise ? 'precise' : frame.classification.state,
+  };
+}
+
+export function appendTunerHistory(history, sample, {
+  maxSamples = POLYGRAPH_HISTORY_SAMPLES,
+} = {}) {
+  const next = Array.isArray(history) ? [...history] : [];
+  if (!sample || !Number.isFinite(sample.time) || !Number.isFinite(sample.cents)) {
+    return next.slice(-maxSamples);
+  }
+
+  next.push({
+    time: sample.time,
+    cents: clampDisplayCents(sample.cents),
+    note: sample.note ?? null,
+    state: sample.state || 'precise',
+  });
+
+  return next.slice(-maxSamples);
+}
+
+export function buildPolygraphPaths(history, {
+  width = POLYGRAPH_WIDTH,
+  height = POLYGRAPH_HEIGHT,
+  range = MAX_METER_CENTS,
+} = {}) {
+  const usable = Array.isArray(history)
+    ? history
+      .filter((entry) => Number.isFinite(entry?.time))
+      .sort((left, right) => left.time - right.time)
+    : [];
+  const segments = [];
+  let current = null;
+  let latestPoint = null;
+  const denominator = Math.max(1, usable.length - 1);
+
+  usable.forEach((entry, index) => {
+    if (!Number.isFinite(entry.cents)) {
+      current = null;
+      return;
+    }
+
+    const x = usable.length === 1 ? width : (index / denominator) * width;
+    const y = toPolygraphY(entry.cents, { height, range });
+    latestPoint = {
+      x,
+      y,
+      state: entry.state,
+    };
+
+    const breaksTrace = !current || current.state !== entry.state || current.note !== entry.note;
+    if (breaksTrace) {
+      current = {
+        state: entry.state,
+        note: entry.note,
+        points: 1,
+        d: `M ${formatSvgNumber(x)} ${formatSvgNumber(y)}`,
+      };
+      segments.push(current);
+      return;
+    }
+
+    current.points += 1;
+    current.d += ` L ${formatSvgNumber(x)} ${formatSvgNumber(y)}`;
+  });
+
+  return {
+    count: usable.length,
+    segments: segments.map(({ state, d, points }) => ({ state, d, points })),
+    latestPoint,
+  };
+}
+
+function getPolygraphTraceMarkup(history) {
+  const { segments, latestPoint } = buildPolygraphPaths(history);
+  const paths = segments
+    .map((segment) => `<path class="tuner-polygraph-path is-${segment.state}" d="${segment.d}"></path>`)
+    .join('');
+  const latest = latestPoint
+    ? `<circle class="tuner-polygraph-point is-${latestPoint.state}" cx="${formatSvgNumber(latestPoint.x)}" cy="${formatSvgNumber(latestPoint.y)}" r="4.5"></circle>`
+    : '';
+  return `${paths}${latest}`;
 }
 
 function formatCents(cents, { precise = false, signed = true } = {}) {
@@ -530,7 +663,10 @@ export function createInstrumentTunerModule() {
   let lastStableFrame = null;
   let heldCenteredNote = null;
   let heldCenteredSince = 0;
+  let polygraphHistory = [];
+  let lastPolygraphSampleAt = 0;
   let listMarkupCache = '';
+  let polygraphMarkupCache = '';
   let customName = '';
   let customNotes = '';
 
@@ -545,7 +681,10 @@ export function createInstrumentTunerModule() {
     lastStableFrame = null;
     heldCenteredNote = null;
     heldCenteredSince = 0;
+    polygraphHistory = [];
+    lastPolygraphSampleAt = 0;
     listMarkupCache = '';
+    polygraphMarkupCache = '';
   }
 
   function getModeState() {
@@ -672,9 +811,8 @@ export function createInstrumentTunerModule() {
     const clarityNode = root.querySelector('[data-tuner-clarity]');
     const rmsNode = root.querySelector('[data-tuner-rms]');
     const heardNode = root.querySelector('[data-tuner-heard]');
-    const needleNode = root.querySelector('[data-tuner-needle]');
-    const fineNeedleNode = root.querySelector('[data-tuner-fine-needle]');
     const meterNode = root.querySelector('[data-tuner-meter]');
+    const polygraphNode = root.querySelector('[data-tuner-polygraph-paths]');
     const listNode = root.querySelector('[data-tuner-strings]');
     const a4Node = root.querySelector('[data-tuner-a4]');
     const holdNode = root.querySelector('[data-tuner-hold]');
@@ -737,15 +875,16 @@ export function createInstrumentTunerModule() {
           ? 'Chromatic live'
           : 'Idle';
     }
-    if (needleNode) {
-      needleNode.style.left = `${getMeterOffset(frame.chromatic?.cents)}%`;
-    }
-    if (fineNeedleNode) {
-      fineNeedleNode.style.left = `${getMeterOffset(comparisonCents, FINE_METER_CENTS)}%`;
-    }
     if (meterNode) {
       meterNode.dataset.state = classification.state;
       meterNode.dataset.mode = 'chromatic';
+    }
+    if (polygraphNode) {
+      const nextMarkup = getPolygraphTraceMarkup(polygraphHistory);
+      if (nextMarkup !== polygraphMarkupCache) {
+        polygraphNode.innerHTML = nextMarkup;
+        polygraphMarkupCache = nextMarkup;
+      }
     }
     if (a4Node) {
       a4Node.value = a4Frequency.toFixed(1);
@@ -821,21 +960,17 @@ export function createInstrumentTunerModule() {
                 <em data-tuner-fine>Unstable</em>
               </div>
             </div>
-            <div class="tuner-meter-track" aria-label="Chromatic cents meter">
-              <span>-50</span>
-              <div class="tuner-meter-bar">
-                <div class="tuner-meter-center"></div>
-                <div class="tuner-meter-needle" data-tuner-needle></div>
+            <div class="tuner-polygraph-shell" aria-label="Chromatic cents history graph">
+              <div class="tuner-polygraph-labels" aria-hidden="true">
+                ${getPolygraphLabelMarkup()}
               </div>
-              <span>+50</span>
-            </div>
-            <div class="tuner-fine-track" aria-label="Fine cents meter">
-              <span>-5</span>
-              <div class="tuner-fine-bar">
-                <div class="tuner-meter-center"></div>
-                <div class="tuner-meter-needle" data-tuner-fine-needle></div>
-              </div>
-              <span>+5</span>
+              <svg class="tuner-polygraph-viewport" viewBox="0 0 ${POLYGRAPH_WIDTH} ${POLYGRAPH_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
+                <g class="tuner-polygraph-grid">
+                  ${getPolygraphGridMarkup()}
+                  <line class="tuner-polygraph-nowline" x1="${POLYGRAPH_WIDTH - 1}" y1="0" x2="${POLYGRAPH_WIDTH - 1}" y2="${POLYGRAPH_HEIGHT}"></line>
+                </g>
+                <g data-tuner-polygraph-paths></g>
+              </svg>
             </div>
             <div class="tuner-guidance-panel">
               <div class="tuner-guidance-primary">
@@ -1131,6 +1266,15 @@ export function createInstrumentTunerModule() {
     });
 
     currentFrame = frame;
+    const now = Date.now();
+    if (!lastPolygraphSampleAt || now - lastPolygraphSampleAt >= POLYGRAPH_SAMPLE_INTERVAL_MS) {
+      const nextSample = createPolygraphSample(frame, now);
+      if (nextSample) {
+        polygraphHistory = appendTunerHistory(polygraphHistory, nextSample);
+        polygraphMarkupCache = '';
+      }
+      lastPolygraphSampleAt = now;
+    }
 
     if (!Number.isFinite(frame.frequency)) {
       const recentlyHeard = Date.now() - lastHeardAt <= HELD_GUIDANCE_MS;

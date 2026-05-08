@@ -546,9 +546,47 @@ test('Instrument tuner polygraph keeps a single precise sample visible inside th
   });
 
   assert.equal(segments.length, 1);
-  assert.equal(segments[0].d, 'M 414 87.3');
+  assert.equal(segments[0].d, 'M 414 83.25');
   assert.equal(latestPoint.x, 414);
-  assert.ok(latestPoint.y > 0 && latestPoint.y < 180);
+  assert.ok(latestPoint.y > 67 && latestPoint.y < 90);
+});
+
+test('Instrument tuner polygraph uses equal visual bands for 0-5-10-25-50 cents', () => {
+  const { segments } = buildPolygraphPaths([
+    { time: 1000, cents: 0, note: 'A2', state: 'precise' },
+    { time: 2000, cents: 5, note: 'A2', state: 'precise' },
+    { time: 3000, cents: 10, note: 'A2', state: 'precise' },
+    { time: 4000, cents: 25, note: 'A2', state: 'precise' },
+    { time: 5000, cents: 50, note: 'A2', state: 'precise' },
+  ], {
+    width: 420,
+    height: 180,
+  });
+
+  assert.equal(segments.length, 1);
+  assert.equal(
+    segments[0].d,
+    'M 6 90 L 108 67.5 L 210 45 L 312 22.5 L 414 0',
+  );
+});
+
+test('Instrument tuner polygraph mirrors the banded scale below zero', () => {
+  const { segments } = buildPolygraphPaths([
+    { time: 1000, cents: 0, note: 'A2', state: 'precise' },
+    { time: 2000, cents: -5, note: 'A2', state: 'precise' },
+    { time: 3000, cents: -10, note: 'A2', state: 'precise' },
+    { time: 4000, cents: -25, note: 'A2', state: 'precise' },
+    { time: 5000, cents: -50, note: 'A2', state: 'precise' },
+  ], {
+    width: 420,
+    height: 180,
+  });
+
+  assert.equal(segments.length, 1);
+  assert.equal(
+    segments[0].d,
+    'M 6 90 L 108 112.5 L 210 135 L 312 157.5 L 414 180',
+  );
 });
 
 test('Instrument tuner polygraph breaks trace segments across gaps and note changes', () => {

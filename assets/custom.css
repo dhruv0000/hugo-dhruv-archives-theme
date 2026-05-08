@@ -1336,8 +1336,8 @@ body {
 }
 
 .tuner-polygraph-grid-line.is-center {
-  stroke: rgba(200, 181, 111, 0.45);
-  stroke-width: 1.5;
+  stroke: rgba(222, 207, 132, 0.9);
+  stroke-width: 2.5;
 }
 
 .tuner-polygraph-nowline {

@@ -41,6 +41,7 @@ const POLYGRAPH_WIDTH = 420;
 const POLYGRAPH_HEIGHT = 180;
 const POLYGRAPH_POINT_INSET = 6;
 const POLYGRAPH_GRID_LEVELS = Object.freeze([50, 25, 10, 5, 0, -5, -10, -25, -50]);
+const POLYGRAPH_SCALE_STEPS = Object.freeze([5, 10, 25, 50]);
 const MIN_DISPLAY_CLARITY = 0.8;
 const MIN_DISPLAY_RMS = 0.0025;
 const MIN_PITCH_CLARITY = 0.92;
@@ -500,7 +501,30 @@ function toPolygraphY(cents, { height = POLYGRAPH_HEIGHT, range = MAX_METER_CENT
     return null;
   }
 
-  return ((range - clamped) / (range * 2)) * height;
+  if (clamped === 0) {
+    return height / 2;
+  }
+
+  const absolute = Math.abs(clamped);
+  const halfHeight = height / 2;
+  const bandHeight = halfHeight / POLYGRAPH_SCALE_STEPS.length;
+  let previousLimit = 0;
+  let offset = halfHeight;
+
+  for (let index = 0; index < POLYGRAPH_SCALE_STEPS.length; index += 1) {
+    const limit = POLYGRAPH_SCALE_STEPS[index];
+    if (absolute <= limit || index === POLYGRAPH_SCALE_STEPS.length - 1) {
+      const span = limit - previousLimit;
+      const progress = span > 0 ? (absolute - previousLimit) / span : 0;
+      offset = (index + progress) * bandHeight;
+      break;
+    }
+    previousLimit = limit;
+  }
+
+  return clamped > 0
+    ? halfHeight - offset
+    : halfHeight + offset;
 }
 
 function formatSvgNumber(value) {
@@ -520,7 +544,7 @@ function getPolygraphGridMarkup() {
 function getPolygraphLabelMarkup() {
   return POLYGRAPH_GRID_LEVELS
     .map((level) => {
-      const top = ((MAX_METER_CENTS - level) / (MAX_METER_CENTS * 2)) * 100;
+      const top = (toPolygraphY(level) / POLYGRAPH_HEIGHT) * 100;
       const value = `${level > 0 ? '+' : ''}${level}`;
       const className = level === 0 ? ' is-center' : '';
       return `<span class="tuner-polygraph-label${className}" style="top:${top.toFixed(2)}%">${value}</span>`;

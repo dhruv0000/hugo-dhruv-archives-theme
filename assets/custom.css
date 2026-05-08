@@ -994,6 +994,7 @@ body {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.tuner-controls-card,
 .tuner-console-card,
 .tuner-side-card {
   display: grid;
@@ -1003,6 +1004,12 @@ body {
   border: 1px solid var(--puzzle-border);
   border-radius: 1rem;
   background: var(--puzzle-surface-muted);
+}
+
+.tuner-controls-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
 }
 
 .tuner-console-card {
@@ -1039,6 +1046,10 @@ body {
   flex-wrap: wrap;
   gap: 0.65rem;
   align-items: flex-start;
+}
+
+.tuner-controls-card .tuner-button-row {
+  justify-content: flex-end;
 }
 
 .tuner-status,
@@ -1134,7 +1145,7 @@ body {
 
 .tuner-console-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.75rem;
   align-items: start;
 }
@@ -1420,7 +1431,8 @@ body {
 
 .tuner-string-list {
   display: grid;
-  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -1428,13 +1440,16 @@ body {
 }
 
 .tuner-string-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(4.75rem, auto);
+  display: flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.55rem;
-  border: 1px solid var(--puzzle-border);
-  border-radius: 0.75rem;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 3.4rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid rgba(117, 117, 117, 0.28);
+  border-radius: 0.7rem;
   background: var(--puzzle-surface);
 }
 
@@ -1448,27 +1463,29 @@ body {
 }
 
 .tuner-string-target {
-  display: grid;
-  gap: 0.1rem;
-  justify-items: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   min-width: 0;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid var(--puzzle-border);
-  border-radius: 0.55rem;
-  background: var(--puzzle-surface-strong);
+  padding: 0.4rem 0.45rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: inherit;
 }
 
 .tuner-string-done {
   appearance: none;
-  min-height: 2.35rem;
-  padding: 0 0.75rem;
+  flex: 0 0 auto;
+  min-height: 2rem;
+  padding: 0 0.7rem;
   border: 1px solid var(--puzzle-border);
   border-radius: 0.55rem;
   background: var(--puzzle-surface-strong);
   color: inherit;
   cursor: pointer;
   font-weight: 700;
+  font-size: 0.84rem;
 }
 
 .tuner-string-done:focus-visible {
@@ -1477,12 +1494,26 @@ body {
 }
 
 .tuner-string-note {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 2.6rem;
+  min-height: 2rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--puzzle-border);
+  border-radius: 0.5rem;
+  background: var(--puzzle-surface-strong);
   font-weight: 700;
 }
 
 .tuner-string-frequency {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
   color: var(--puzzle-muted);
   font-size: 0.84rem;
+  white-space: nowrap;
 }
 
 @media (max-width: 900px) {
@@ -1497,6 +1528,14 @@ body {
 
   .tuner-workbench {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tuner-controls-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tuner-controls-card .tuner-button-row {
+    justify-content: flex-start;
   }
 }
 
@@ -2096,11 +2135,12 @@ html:not(.dark) .cage-cell.is-selected .cage-value {
   }
 
   .tuner-console-top {
-    grid-template-columns: minmax(0, 1fr) minmax(7.25rem, 9rem);
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.75rem;
     align-items: start;
   }
 
+  .tuner-controls-card,
   .tuner-console-card,
   .tuner-side-card {
     gap: 0.8rem;
@@ -2112,6 +2152,10 @@ html:not(.dark) .cage-cell.is-selected .cage-value {
 
   .tuner-button-row {
     width: 100%;
+  }
+
+  .tuner-controls-card .tuner-button-row {
+    justify-content: stretch;
   }
 
   .tuner-button-row .puzzle-button {
@@ -2153,9 +2197,12 @@ html:not(.dark) .cage-cell.is-selected .cage-value {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .tuner-string-item {
+  .tuner-string-list {
     grid-template-columns: minmax(0, 1fr);
-    padding: 0.55rem;
+  }
+
+  .tuner-string-item {
+    padding: 0.45rem;
   }
 
   .equation-grid-target {
@@ -2319,9 +2366,12 @@ html:not(.dark) .cage-cell.is-selected .cage-value {
 
   .tuner-guidance-panel,
   .tuner-signal-grid div,
-  .tuner-string-target,
   .tuner-string-done {
     padding: 0.65rem;
+  }
+
+  .tuner-string-note {
+    min-width: 2.45rem;
   }
 
   .puzzle-stats-table {

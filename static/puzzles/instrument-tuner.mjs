@@ -989,19 +989,23 @@ export function createInstrumentTunerModule() {
       <section class="puzzle-card tuner-card">
         ${header}
         <div class="tuner-workbench">
-          <section class="tuner-console-card" data-tuner-meter data-state="no-signal" data-mode="chromatic" data-ready="false">
-            <div class="tuner-console-top">
-              <div class="tuner-note-block">
-                <p class="puzzle-kicker">Detected</p>
-                <div class="tuner-note-readout" data-tuner-detected>—</div>
-                <p class="tuner-meter-frequency" data-tuner-frequency>No stable pitch yet</p>
-              </div>
-              <div class="tuner-cents-block">
-                <span data-tuner-state>No signal</span>
-                <strong data-tuner-cents>—</strong>
-                <em data-tuner-fine>Unstable</em>
-              </div>
+          <section class="tuner-controls-card">
+            <label class="tuner-field">
+              <span>Tuning source</span>
+              <select class="tuner-select" data-tuner-select>
+                ${options.map((option) => `
+                  <option value="${escapeHtml(option.id)}"${option.id === currentTuningId ? ' selected' : ''}>
+                    ${escapeHtml(option.label)}
+                  </option>
+                `).join('')}
+              </select>
+            </label>
+            <div class="tuner-button-row">
+              <button type="button" class="puzzle-button" data-tuner-toggle>${isListening ? 'Stop mic' : 'Start mic'}</button>
             </div>
+          </section>
+
+          <section class="tuner-console-card" data-tuner-meter data-state="no-signal" data-mode="chromatic" data-ready="false">
             <div class="tuner-polygraph-shell" aria-label="Chromatic cents history graph">
               <div class="tuner-polygraph-labels" aria-hidden="true">
                 ${getPolygraphLabelMarkup()}
@@ -1013,6 +1017,18 @@ export function createInstrumentTunerModule() {
                 </g>
                 <g data-tuner-polygraph-paths></g>
               </svg>
+            </div>
+            <div class="tuner-console-top">
+              <div class="tuner-note-block">
+                <p class="puzzle-kicker">Detected</p>
+                <div class="tuner-note-readout" data-tuner-detected>—</div>
+                <p class="tuner-meter-frequency" data-tuner-frequency>No stable pitch yet</p>
+              </div>
+              <div class="tuner-cents-block">
+                <span data-tuner-state>No signal</span>
+                <strong data-tuner-cents>—</strong>
+                <em data-tuner-fine>Unstable</em>
+              </div>
             </div>
             <div class="tuner-guidance-panel">
               <div class="tuner-guidance-primary">
@@ -1031,19 +1047,6 @@ export function createInstrumentTunerModule() {
           </section>
 
           <section class="tuner-side-card">
-            <label class="tuner-field">
-              <span>Tuning source</span>
-              <select class="tuner-select" data-tuner-select>
-                ${options.map((option) => `
-                  <option value="${escapeHtml(option.id)}"${option.id === currentTuningId ? ' selected' : ''}>
-                    ${escapeHtml(option.label)}
-                  </option>
-                `).join('')}
-              </select>
-            </label>
-            <div class="tuner-button-row">
-              <button type="button" class="puzzle-button" data-tuner-toggle>${isListening ? 'Stop mic' : 'Start mic'}</button>
-            </div>
             <p class="tuner-status" data-tuner-status>${escapeHtml(statusMessage)}</p>
             <p class="tuner-error" data-tuner-error hidden></p>
             <ul class="tuner-string-list" data-tuner-strings></ul>

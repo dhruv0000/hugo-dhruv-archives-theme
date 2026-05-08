@@ -5,7 +5,7 @@ import { getEnabledModes, resolveActiveModeId } from '../static/puzzles/app.mjs'
 import { CAGE_LOGIC_SEEDS, countCageLogicSolutions, findColumnConflicts, findRowConflicts, generateCageLogic, isSolvedCageLogicBoard, validateCage } from '../static/puzzles/cage-logic.mjs';
 import { EQUATION_GRID_SEEDS, countEquationGridSolutions, generateEquationGrid, validateEquationGridBoard } from '../static/puzzles/equation-grid.mjs';
 import { addRandomTile, isGameOver, slideBoard } from '../static/puzzles/game-2048.mjs';
-import { appendTunerHistory, buildPolygraphPaths, buildTuningTargets, centsBetween, classifyPitchFrame, computeRms, createTuningFrame, findClosestTuningTarget, frequencyToChromaticReading, frequencyToNoteName, getPitchGuidance, isTuningSessionComplete, noteNameToFrequency, parseTuningInput } from '../static/puzzles/instrument-tuner.mjs';
+import { appendTunerHistory, buildPolygraphPaths, buildTuningTargets, centsBetween, classifyPitchFrame, computeRms, createTuningFrame, findClosestTuningTarget, frequencyToChromaticReading, frequencyToNoteName, getPitchGuidance, isPolygraphSampleAccurate, isTuningSessionComplete, noteNameToFrequency, parseTuningInput } from '../static/puzzles/instrument-tuner.mjs';
 import { getDefaultLevel, getModeLevels, normalizePuzzleMeta } from '../static/puzzles/levels.mjs';
 import { createMemoryStorage, createStore, STORAGE_KEY, STORAGE_KEY_V1 } from '../static/puzzles/store.mjs';
 import { PitchDetector } from '../static/puzzles/vendor/pitchy.mjs';
@@ -496,20 +496,59 @@ test('Instrument tuner ignores non-precise polygraph samples', () => {
   assert.equal(history[0].state, 'precise');
 });
 
+test('Instrument tuner accepts stable weak detections into the polygraph buffer', () => {
+  const frame = createTuningFrame({
+    rawFrequency: noteNameToFrequency('A2'),
+    clarity: 0.84,
+    rms: 0.012,
+    recentFrequencies: [noteNameToFrequency('A2'), noteNameToFrequency('A2'), noteNameToFrequency('A2')],
+    centsHistory: [-0.8, -1.1, -0.4, -0.7, -0.5],
+  });
+
+  assert.equal(frame.classification.state, 'weak');
+  assert.equal(isPolygraphSampleAccurate(frame, [-0.8, -1.1, -0.4, -0.7, -0.5]), true);
+});
+
+test('Instrument tuner rejects unstable detections from the polygraph buffer', () => {
+  const frame = createTuningFrame({
+    rawFrequency: noteNameToFrequency('A2'),
+    clarity: 0.84,
+    rms: 0.012,
+    recentFrequencies: [noteNameToFrequency('A2'), noteNameToFrequency('A2'), noteNameToFrequency('A2')],
+    centsHistory: [-7, 5, -4, 6, -3],
+  });
+
+  assert.equal(frame.classification.state, 'weak');
+  assert.equal(isPolygraphSampleAccurate(frame, [-7, 5, -4, 6, -3]), false);
+});
+
 test('Instrument tuner polygraph pins the newest sample to the right edge', () => {
   const { segments, latestPoint } = buildPolygraphPaths([
     { time: 1000, cents: -12, note: 'E2', state: 'weak' },
     { time: 4000, cents: 2, note: 'E2', state: 'precise' },
   ], {
-    now: 4000,
     width: 420,
     height: 180,
-    historyMs: 4000,
   });
 
   assert.equal(segments.length, 2);
-  assert.equal(latestPoint.x, 420);
+  assert.ok(latestPoint.x < 420);
+  assert.ok(latestPoint.x > 410);
   assert.ok(latestPoint.y >= 0 && latestPoint.y <= 180);
+});
+
+test('Instrument tuner polygraph keeps a single precise sample visible inside the viewport', () => {
+  const { segments, latestPoint } = buildPolygraphPaths([
+    { time: 4000, cents: 1.5, note: 'E2', state: 'precise' },
+  ], {
+    width: 420,
+    height: 180,
+  });
+
+  assert.equal(segments.length, 1);
+  assert.equal(segments[0].d, 'M 414 87.3');
+  assert.equal(latestPoint.x, 414);
+  assert.ok(latestPoint.y > 0 && latestPoint.y < 180);
 });
 
 test('Instrument tuner polygraph breaks trace segments across gaps and note changes', () => {

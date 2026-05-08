@@ -39,6 +39,7 @@ const POLYGRAPH_SAMPLE_INTERVAL_MS = Math.round(1000 / POLYGRAPH_SAMPLE_RATE);
 const POLYGRAPH_HISTORY_SAMPLES = Math.round((POLYGRAPH_HISTORY_MS / 1000) * POLYGRAPH_SAMPLE_RATE);
 const POLYGRAPH_WIDTH = 420;
 const POLYGRAPH_HEIGHT = 180;
+const POLYGRAPH_POINT_INSET = 6;
 const POLYGRAPH_GRID_LEVELS = Object.freeze([50, 25, 10, 5, 0, -5, -10, -25, -50]);
 const MIN_DISPLAY_CLARITY = 0.8;
 const MIN_DISPLAY_RMS = 0.0025;
@@ -527,8 +528,21 @@ function getPolygraphLabelMarkup() {
     .join('');
 }
 
-function createPolygraphSample(frame, time = Date.now()) {
-  if (!frame?.chromatic || !Number.isFinite(frame?.frequency) || !frame.classification?.precise) {
+export function isPolygraphSampleAccurate(frame, centsHistory = []) {
+  if (!frame?.chromatic || !Number.isFinite(frame?.frequency) || frame?.classification?.state === 'held') {
+    return false;
+  }
+
+  if (frame.classification?.precise) {
+    return true;
+  }
+
+  const spread = centsSpread([...centsHistory, frame.chromatic.cents].slice(-STABILITY_WINDOW));
+  return Number.isFinite(spread) && spread <= STABLE_CENTS_SPREAD;
+}
+
+function createPolygraphSample(frame, centsHistory = [], time = Date.now()) {
+  if (!isPolygraphSampleAccurate(frame, centsHistory)) {
     return null;
   }
 
@@ -536,7 +550,7 @@ function createPolygraphSample(frame, time = Date.now()) {
     time,
     cents: clampDisplayCents(frame.chromatic.cents),
     note: frame.chromatic.note,
-    state: frame.classification.precise ? 'precise' : frame.classification.state,
+    state: frame.classification.precise ? 'precise' : 'weak',
   };
 }
 
@@ -572,6 +586,8 @@ export function buildPolygraphPaths(history, {
   let current = null;
   let latestPoint = null;
   const denominator = Math.max(1, usable.length - 1);
+  const minX = POLYGRAPH_POINT_INSET;
+  const maxX = Math.max(minX, width - POLYGRAPH_POINT_INSET);
 
   usable.forEach((entry, index) => {
     if (!Number.isFinite(entry.cents)) {
@@ -579,7 +595,9 @@ export function buildPolygraphPaths(history, {
       return;
     }
 
-    const x = usable.length === 1 ? width : (index / denominator) * width;
+    const x = usable.length === 1
+      ? maxX
+      : minX + (index / denominator) * (maxX - minX);
     const y = toPolygraphY(entry.cents, { height, range });
     latestPoint = {
       x,
@@ -1266,15 +1284,6 @@ export function createInstrumentTunerModule() {
     });
 
     currentFrame = frame;
-    const now = Date.now();
-    if (!lastPolygraphSampleAt || now - lastPolygraphSampleAt >= POLYGRAPH_SAMPLE_INTERVAL_MS) {
-      const nextSample = createPolygraphSample(frame, now);
-      if (nextSample) {
-        polygraphHistory = appendTunerHistory(polygraphHistory, nextSample);
-        polygraphMarkupCache = '';
-      }
-      lastPolygraphSampleAt = now;
-    }
 
     if (!Number.isFinite(frame.frequency)) {
       const recentlyHeard = Date.now() - lastHeardAt <= HELD_GUIDANCE_MS;
@@ -1296,6 +1305,16 @@ export function createInstrumentTunerModule() {
     recentCents.push(comparisonCents);
     if (recentCents.length > STABILITY_WINDOW) {
       recentCents.shift();
+    }
+
+    const now = Date.now();
+    if (!lastPolygraphSampleAt || now - lastPolygraphSampleAt >= POLYGRAPH_SAMPLE_INTERVAL_MS) {
+      const nextSample = createPolygraphSample(frame, recentCents, now);
+      if (nextSample) {
+        polygraphHistory = appendTunerHistory(polygraphHistory, nextSample);
+        polygraphMarkupCache = '';
+      }
+      lastPolygraphSampleAt = now;
     }
 
     if (frame.classification.stable) {

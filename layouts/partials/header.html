@@ -158,7 +158,7 @@
           rel="{{ if eq $firstSocial `rss` }}alternate{{ else }}me{{ end }}"
           aria-label="Open social links, currently showing {{ $firstLabel }}" aria-expanded="false">
           <span class="custom-social-trigger-icon" data-social-display
-            style="--social-current-url: url(./{{ $firstSocial }}.svg);"></span>
+            style="--social-current-url: url('{{ printf `%s.svg` $firstSocial | relURL }}');"></span>
         </a>
         <div class="custom-social-items">
           {{ range $index, $social := $socials }}<!---->
@@ -191,8 +191,8 @@
           {{ $label = title $social }}
           {{ end }}
           <a class="custom-social-item custom-header-social" data-social-item
-            data-social-url="url(./{{ $social }}.svg)" data-social-label="{{ $label }}" data-social-href="{{ $href }}"
-            style="--social-index: {{ $index }}; --social-url: url(./{{ $social }}.svg);"
+            data-social-url="url('{{ printf `%s.svg` $social | relURL }}')" data-social-label="{{ $label }}" data-social-href="{{ $href }}"
+            style="--social-index: {{ $index }}; --social-url: url('{{ printf `%s.svg` $social | relURL }}');"
             href="{{ $href }}" target="_blank" rel="{{ if eq $social `rss` }}alternate{{ else }}me{{ end }}"
             aria-label="{{ $label }}">
             {{ $label }}

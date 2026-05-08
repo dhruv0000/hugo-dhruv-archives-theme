@@ -5,7 +5,7 @@ import { getEnabledModes, resolveActiveModeId } from '../static/puzzles/app.mjs'
 import { CAGE_LOGIC_SEEDS, countCageLogicSolutions, findColumnConflicts, findRowConflicts, generateCageLogic, isSolvedCageLogicBoard, validateCage } from '../static/puzzles/cage-logic.mjs';
 import { EQUATION_GRID_SEEDS, countEquationGridSolutions, generateEquationGrid, validateEquationGridBoard } from '../static/puzzles/equation-grid.mjs';
 import { addRandomTile, isGameOver, slideBoard } from '../static/puzzles/game-2048.mjs';
-import { buildTuningTargets, centsBetween, findClosestTuningTarget, frequencyToNoteName, getPitchGuidance, isTuningSessionComplete, noteNameToFrequency, parseTuningInput } from '../static/puzzles/instrument-tuner.mjs';
+import { buildTuningTargets, centsBetween, classifyPitchFrame, computeRms, createTuningFrame, findClosestTuningTarget, frequencyToChromaticReading, frequencyToNoteName, getPitchGuidance, isTuningSessionComplete, noteNameToFrequency, parseTuningInput } from '../static/puzzles/instrument-tuner.mjs';
 import { getDefaultLevel, getModeLevels, normalizePuzzleMeta } from '../static/puzzles/levels.mjs';
 import { createMemoryStorage, createStore, STORAGE_KEY, STORAGE_KEY_V1 } from '../static/puzzles/store.mjs';
 import { PitchDetector } from '../static/puzzles/vendor/pitchy.mjs';
@@ -315,6 +315,20 @@ test('Custom tunings persist and selected tuning survives reload', () => {
   assert.equal(reloaded.getState().customTunings[0].label, 'Open D');
 });
 
+test('Instrument tuner A4 calibration persists and is clamped', () => {
+  const storage = createMemoryStorage();
+  const store = createStore({ storage, storageKey: STORAGE_KEY });
+
+  store.setTunerCalibration({ a4Frequency: 442.26 });
+  assert.equal(store.getModeState('instrument-tuner').a4Frequency, 442.3);
+
+  const reloaded = createStore({ storage, storageKey: STORAGE_KEY });
+  assert.equal(reloaded.getModeState('instrument-tuner').a4Frequency, 442.3);
+
+  reloaded.setTunerCalibration({ a4Frequency: 1000 });
+  assert.equal(reloaded.getModeState('instrument-tuner').a4Frequency, 490);
+});
+
 test('Instrument tuner completion mirrors total across all progress columns', () => {
   const storage = createMemoryStorage();
   const store = createStore({ storage, storageKey: STORAGE_KEY });
@@ -396,10 +410,101 @@ test('Instrument tuner note conversions stay musically aligned', () => {
   assert.equal(Math.round(centsBetween(466.1637615, 440)), 100);
 });
 
+test('Instrument tuner supports custom A4 calibration in note conversions', () => {
+  assert.ok(Math.abs(noteNameToFrequency('A4', { a4Frequency: 442 }) - 442) < 0.001);
+  assert.equal(frequencyToNoteName(442, { a4Frequency: 442 }), 'A4');
+  assert.ok(Math.abs(noteNameToFrequency('E2', { a4Frequency: 442 }) - 82.78) < 0.1);
+});
+
+test('Instrument tuner chromatic reading follows the played note, not preset progress', () => {
+  const reading = frequencyToChromaticReading(noteNameToFrequency('A2'));
+  const targets = buildTuningTargets({
+    notes: ['E2', 'A2', 'D3'],
+  });
+  const completed = [false, true, false];
+  const secondaryTarget = findClosestTuningTarget(targets, reading.frequency, {
+    completed,
+    incompleteOnly: true,
+  });
+
+  assert.equal(reading.note, 'A2');
+  assert.equal(Math.round(reading.cents), 0);
+  assert.equal(secondaryTarget.target.note, 'D3');
+});
+
 test('Instrument tuner guidance tells the player whether to go up or down', () => {
   assert.equal(getPitchGuidance(-19).label, 'Tune up');
   assert.equal(getPitchGuidance(21).label, 'Tune down');
-  assert.equal(getPitchGuidance(3).label, 'In tune');
+  assert.equal(getPitchGuidance(3).label, 'Centered');
+});
+
+test('Instrument tuner rejects weak signal frames before precision display', () => {
+  const frame = createTuningFrame({
+    rawFrequency: 440,
+    clarity: 0.99,
+    rms: 0.001,
+    recentFrequencies: [440, 440, 440],
+    centsHistory: [0, 0, 0],
+  });
+
+  assert.equal(frame.frequency, null);
+  assert.equal(frame.classification.state, 'weak');
+  assert.equal(computeRms(new Float32Array([0.5, -0.5, 0.5, -0.5])), 0.5);
+});
+
+test('Instrument tuner still shows the closest note for weak but pitched frames', () => {
+  const frame = createTuningFrame({
+    rawFrequency: noteNameToFrequency('E2'),
+    clarity: 0.84,
+    rms: 0.012,
+    recentFrequencies: [noteNameToFrequency('E2'), noteNameToFrequency('E2'), noteNameToFrequency('E2')],
+    centsHistory: [0, 0, 0],
+  });
+
+  assert.equal(frame.chromatic.note, 'E2');
+  assert.ok(frame.frequency > 82 && frame.frequency < 83);
+  assert.equal(frame.classification.state, 'weak');
+  assert.equal(frame.classification.precise, false);
+});
+
+test('Instrument tuner gates decimal cents until recent readings are stable', () => {
+  const unstable = classifyPitchFrame({
+    frequency: 440,
+    cents: 0.5,
+    clarity: 0.96,
+    rms: 0.03,
+    centsHistory: [-3, 2, -2, 3, 0.5],
+  });
+  const stable = classifyPitchFrame({
+    frequency: 440,
+    cents: 0.4,
+    clarity: 0.96,
+    rms: 0.03,
+    centsHistory: [0.2, 0.4, 0.1, 0.5, 0.3],
+  });
+
+  assert.equal(unstable.state, 'unstable');
+  assert.equal(unstable.precise, false);
+  assert.equal(stable.state, 'centered');
+  assert.equal(stable.precise, true);
+});
+
+test('Instrument tuner calculates manual target cents separately from chromatic cents', () => {
+  const targets = buildTuningTargets({
+    notes: ['E2', 'A2', 'D3'],
+  });
+  const frame = createTuningFrame({
+    rawFrequency: noteNameToFrequency('A#2'),
+    clarity: 0.98,
+    rms: 0.03,
+    recentFrequencies: [noteNameToFrequency('A#2'), noteNameToFrequency('A#2'), noteNameToFrequency('A#2')],
+    centsHistory: [100, 100, 100],
+    manualTarget: targets[1],
+  });
+
+  assert.equal(frame.chromatic.note, 'A#2');
+  assert.equal(Math.round(frame.chromatic.cents), 0);
+  assert.ok(frame.manual.cents > 99);
 });
 
 test('Vendored pitch detector resolves a clean A4 sine wave accurately', () => {

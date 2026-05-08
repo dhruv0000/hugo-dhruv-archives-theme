@@ -260,6 +260,7 @@ function createModeContext(mode, store, puzzleMeta) {
     getCustomTunings: () => (store.getState().customTunings || []).map((entry) => ({ ...entry })),
     setSelectedLevel: (level) => store.setSelectedLevel(mode.id, level),
     setSelectedTuning: (details) => store.setSelectedTuning(mode.id, details),
+    setTunerCalibration: (details) => store.setTunerCalibration(details),
     saveCustomTuning: (tuning) => store.saveCustomTuning(tuning),
     startSession: (snapshot) => store.startMode(mode.id, snapshot),
     saveProgress: (snapshot) => store.setInProgress(mode.id, snapshot),

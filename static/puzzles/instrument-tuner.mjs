@@ -24,15 +24,27 @@ const NOTE_TO_SEMITONE = Object.freeze({
 const NOTE_NAMES_SHARP = Object.freeze(['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']);
 const SCIENTIFIC_NOTE_PATTERN = /^([A-Ga-g])([#b]?)(-?\d+)$/;
 const CUSTOM_TUNING_ID_PREFIX = 'custom:';
-const TUNED_CENTS_THRESHOLD = 8;
-const TUNED_FRAME_THRESHOLD = 3;
+const DEFAULT_A4_FREQUENCY = 440;
+const MIN_A4_FREQUENCY = 390;
+const MAX_A4_FREQUENCY = 490;
+const CENTERED_CENTS_THRESHOLD = 3;
+const READY_CENTS_THRESHOLD = 5;
+const HOLD_TO_MARK_MS = 3000;
 const MAX_METER_CENTS = 50;
+const FINE_METER_CENTS = 5;
 const HELD_GUIDANCE_MS = 2500;
 const DETECTOR_BUFFER_SIZE = 4096;
+const MIN_DISPLAY_CLARITY = 0.8;
+const MIN_DISPLAY_RMS = 0.0025;
 const MIN_PITCH_CLARITY = 0.92;
+const MIN_STABLE_CLARITY = 0.94;
+const MIN_SIGNAL_RMS = 0.006;
+const MIN_STABLE_RMS = 0.01;
 const MIN_PITCH_FREQUENCY = 30;
 const MAX_PITCH_FREQUENCY = 1400;
 const DETECTION_SMOOTHING_WINDOW = 5;
+const STABILITY_WINDOW = 6;
+const STABLE_CENTS_SPREAD = 1.2;
 
 export const PRESET_TUNINGS = Object.freeze([
   { id: 'preset:guitar', label: 'Guitar', notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'] },
@@ -69,6 +81,15 @@ function normalizeNoteToken(token) {
   return `${note}${octave}`;
 }
 
+function normalizeA4Frequency(value) {
+  const frequency = Number.parseFloat(value);
+  if (!Number.isFinite(frequency)) {
+    return DEFAULT_A4_FREQUENCY;
+  }
+
+  return Math.min(MAX_A4_FREQUENCY, Math.max(MIN_A4_FREQUENCY, Math.round(frequency * 10) / 10));
+}
+
 export function noteNameToMidi(noteName) {
   const normalized = normalizeNoteToken(noteName);
   if (!normalized) {
@@ -80,32 +101,41 @@ export function noteNameToMidi(noteName) {
   return NOTE_TO_SEMITONE[`${match[1]}${match[2] || ''}`] + (octave + 1) * 12;
 }
 
-export function noteNameToFrequency(noteName) {
+export function noteNameToFrequency(noteName, { a4Frequency = DEFAULT_A4_FREQUENCY } = {}) {
   const midi = noteNameToMidi(noteName);
   if (!Number.isFinite(midi)) {
     return null;
   }
 
-  return 440 * 2 ** ((midi - 69) / 12);
+  return normalizeA4Frequency(a4Frequency) * 2 ** ((midi - 69) / 12);
 }
 
-function frequencyToMidi(frequency) {
+function frequencyToMidiValue(frequency, { a4Frequency = DEFAULT_A4_FREQUENCY } = {}) {
   if (!Number.isFinite(frequency) || frequency <= 0) {
     return null;
   }
 
-  return Math.round(69 + 12 * Math.log2(frequency / 440));
+  return 69 + 12 * Math.log2(frequency / normalizeA4Frequency(a4Frequency));
 }
 
-export function frequencyToNoteName(frequency) {
-  const midi = frequencyToMidi(frequency);
+function frequencyToMidi(frequency, options = {}) {
+  const midi = frequencyToMidiValue(frequency, options);
+  return Number.isFinite(midi) ? Math.round(midi) : null;
+}
+
+function midiToNoteName(midi) {
   if (!Number.isFinite(midi)) {
     return null;
   }
 
-  const note = NOTE_NAMES_SHARP[((midi % 12) + 12) % 12];
-  const octave = Math.floor(midi / 12) - 1;
+  const rounded = Math.round(midi);
+  const note = NOTE_NAMES_SHARP[((rounded % 12) + 12) % 12];
+  const octave = Math.floor(rounded / 12) - 1;
   return `${note}${octave}`;
+}
+
+export function frequencyToNoteName(frequency, options = {}) {
+  return midiToNoteName(frequencyToMidi(frequency, options));
 }
 
 export function centsBetween(frequency, targetFrequency) {
@@ -114,6 +144,49 @@ export function centsBetween(frequency, targetFrequency) {
   }
 
   return 1200 * Math.log2(frequency / targetFrequency);
+}
+
+export function frequencyToChromaticReading(frequency, { a4Frequency = DEFAULT_A4_FREQUENCY } = {}) {
+  const midiValue = frequencyToMidiValue(frequency, { a4Frequency });
+  if (!Number.isFinite(midiValue)) {
+    return null;
+  }
+
+  const midi = Math.round(midiValue);
+  const note = midiToNoteName(midi);
+  const targetFrequency = noteNameToFrequency(note, { a4Frequency });
+
+  return {
+    note,
+    midi,
+    frequency,
+    targetFrequency,
+    cents: centsBetween(frequency, targetFrequency),
+  };
+}
+
+function getChromaticRangeLabel(noteName) {
+  const midi = noteNameToMidi(noteName);
+  if (!Number.isFinite(midi)) {
+    return '—';
+  }
+
+  const previous = midiToNoteName(midi - 1);
+  const next = midiToNoteName(midi + 1);
+  return `${previous} < ${noteName} < ${next}`;
+}
+
+export function computeRms(input) {
+  if (!input?.length) {
+    return 0;
+  }
+
+  let squareSum = 0;
+  for (let index = 0; index < input.length; index += 1) {
+    squareSum += input[index] ** 2;
+  }
+
+  return Math.sqrt(squareSum / input.length);
 }
 
 export function parseTuningInput(value) {
@@ -152,10 +225,10 @@ export function createCustomTuningId(label) {
   return `${CUSTOM_TUNING_ID_PREFIX}${slugify(label)}:${Date.now().toString(36)}`;
 }
 
-export function buildTuningTargets(tuning) {
+export function buildTuningTargets(tuning, { a4Frequency = DEFAULT_A4_FREQUENCY } = {}) {
   return (tuning?.notes || [])
     .map((note, index) => {
-      const frequency = noteNameToFrequency(note);
+      const frequency = noteNameToFrequency(note, { a4Frequency });
       if (!Number.isFinite(frequency)) {
         return null;
       }
@@ -204,21 +277,110 @@ function median(values) {
   return (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
+function centsSpread(values) {
+  const usable = values.filter(Number.isFinite);
+  if (usable.length < Math.max(3, Math.floor(STABILITY_WINDOW / 2))) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return Math.max(...usable) - Math.min(...usable);
+}
+
+export function classifyPitchFrame({
+  frequency,
+  cents,
+  clarity = 0,
+  rms = 0,
+  centsHistory = [],
+  isHeld = false,
+} = {}) {
+  if (isHeld) {
+    return {
+      state: 'held',
+      label: 'Held reading',
+      detail: 'The string is decaying; pluck again for a fresh precision reading.',
+      stable: false,
+      precise: false,
+    };
+  }
+
+  if (!Number.isFinite(frequency)) {
+    return {
+      state: 'no-signal',
+      label: 'No signal',
+      detail: 'Play one string cleanly.',
+      stable: false,
+      precise: false,
+    };
+  }
+
+  if (rms < MIN_SIGNAL_RMS || clarity < MIN_PITCH_CLARITY) {
+    return {
+      state: 'weak',
+      label: 'Weak',
+      detail: 'Use a stronger, cleaner pluck before trusting the cents.',
+      stable: false,
+      precise: false,
+    };
+  }
+
+  const spread = centsSpread(centsHistory);
+  const stable = rms >= MIN_STABLE_RMS && clarity >= MIN_STABLE_CLARITY && spread <= STABLE_CENTS_SPREAD;
+
+  if (!stable) {
+    return {
+      state: 'unstable',
+      label: 'Unstable',
+      detail: 'Hold the note steady for fine tuning.',
+      stable: false,
+      precise: false,
+    };
+  }
+
+  if (Math.abs(cents) <= CENTERED_CENTS_THRESHOLD) {
+    return {
+      state: 'centered',
+      label: 'Centered',
+      detail: 'Stable enough for fine tuning.',
+      stable: true,
+      precise: true,
+    };
+  }
+
+  if (cents < 0) {
+    return {
+      state: 'flat',
+      label: 'Flat',
+      detail: 'Raise pitch.',
+      stable: true,
+      precise: true,
+    };
+  }
+
+  return {
+    state: 'sharp',
+    label: 'Sharp',
+    detail: 'Lower pitch.',
+    stable: true,
+    precise: true,
+  };
+}
+
 export function getPitchGuidance(cents) {
   if (!Number.isFinite(cents)) {
     return {
-      state: 'unknown',
-      label: 'Listen',
-      detail: 'Pluck a string cleanly to place it on the meter.',
+      state: 'no-signal',
+      label: 'No signal',
+      detail: 'Play one string cleanly.',
       instruction: 'No stable pitch yet',
     };
   }
 
   const rounded = Math.abs(Math.round(cents));
-  if (Math.abs(cents) <= TUNED_CENTS_THRESHOLD) {
+  if (Math.abs(cents) <= CENTERED_CENTS_THRESHOLD) {
     return {
-      state: 'in-tune',
-      label: 'In tune',
+      state: 'centered',
+      label: 'Centered',
       detail: `Within ${rounded} cents of center.`,
       instruction: 'Hold steady',
     };
@@ -241,6 +403,66 @@ export function getPitchGuidance(cents) {
   };
 }
 
+export function createTuningFrame({
+  rawFrequency,
+  clarity = 0,
+  rms = 0,
+  recentFrequencies = [],
+  centsHistory = [],
+  manualTarget = null,
+  a4Frequency = DEFAULT_A4_FREQUENCY,
+} = {}) {
+  const hasFrequencyCandidate = Number.isFinite(rawFrequency)
+    && rawFrequency >= MIN_PITCH_FREQUENCY
+    && rawFrequency <= MAX_PITCH_FREQUENCY;
+  const hasDisplayPitch = hasFrequencyCandidate
+    && clarity >= MIN_DISPLAY_CLARITY
+    && rms >= MIN_DISPLAY_RMS;
+
+  if (!hasDisplayPitch) {
+    return {
+      rawFrequency: Number.isFinite(rawFrequency) ? rawFrequency : null,
+      frequency: null,
+      clarity,
+      rms,
+      chromatic: null,
+      manual: null,
+      classification: classifyPitchFrame({
+        frequency: hasFrequencyCandidate ? rawFrequency : null,
+        clarity,
+        rms,
+      }),
+    };
+  }
+
+  const smoothedFrequency = median([...recentFrequencies, rawFrequency].slice(-DETECTION_SMOOTHING_WINDOW)) || rawFrequency;
+  const chromatic = frequencyToChromaticReading(smoothedFrequency, { a4Frequency });
+  const manual = manualTarget
+    ? {
+        target: manualTarget,
+        cents: centsBetween(smoothedFrequency, manualTarget.frequency),
+      }
+    : null;
+  const cents = manual?.cents ?? chromatic?.cents;
+  const classification = classifyPitchFrame({
+    frequency: smoothedFrequency,
+    cents,
+    clarity,
+    rms,
+    centsHistory: [...centsHistory, cents].slice(-STABILITY_WINDOW),
+  });
+
+  return {
+    rawFrequency,
+    frequency: smoothedFrequency,
+    clarity,
+    rms,
+    chromatic,
+    manual,
+    classification,
+  };
+}
+
 function getAudioSupportState() {
   return {
     hasMediaDevices: typeof navigator !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia),
@@ -257,13 +479,30 @@ function resolveSelectedTuning(options, tuningId) {
   return options.find((entry) => entry.id === tuningId) || options[0] || null;
 }
 
-function getMeterOffset(cents) {
+function getMeterOffset(cents, range = MAX_METER_CENTS) {
   if (!Number.isFinite(cents)) {
     return 50;
   }
 
-  const clamped = Math.max(-MAX_METER_CENTS, Math.min(MAX_METER_CENTS, cents));
-  return ((clamped + MAX_METER_CENTS) / (MAX_METER_CENTS * 2)) * 100;
+  const clamped = Math.max(-range, Math.min(range, cents));
+  return ((clamped + range) / (range * 2)) * 100;
+}
+
+function formatCents(cents, { precise = false, signed = true } = {}) {
+  if (!Number.isFinite(cents)) {
+    return '—';
+  }
+
+  const value = precise ? cents.toFixed(1) : `${Math.round(cents)}`;
+  return `${signed && cents > 0 ? '+' : ''}${value}¢`;
+}
+
+function formatFrequency(frequency) {
+  return Number.isFinite(frequency) ? `${frequency.toFixed(1)} Hz` : '—';
+}
+
+function formatPercent(value) {
+  return `${Math.round(Math.max(0, Math.min(1, value || 0)) * 100)}%`;
 }
 
 export function createInstrumentTunerModule() {
@@ -277,52 +516,36 @@ export function createInstrumentTunerModule() {
   let sampleBuffer = null;
   let pitchDetector = null;
   let currentTuningId = PRESET_TUNINGS[0].id;
+  let a4Frequency = DEFAULT_A4_FREQUENCY;
   let tuningTargets = [];
   let completed = [];
-  let consecutiveHits = [];
   let recentFrequencies = [];
+  let recentCents = [];
   let sessionStartedAt = 0;
   let isListening = false;
   let statusMessage = 'Choose a tuning and start the mic.';
   let errorMessage = '';
-  let detectedNote = '—';
-  let detectedFrequency = null;
-  let targetInfo = null;
+  let currentFrame = null;
   let lastHeardAt = 0;
-  let lastStableReading = null;
-  let lockedTargetIndex = null;
+  let lastStableFrame = null;
+  let heldCenteredNote = null;
+  let heldCenteredSince = 0;
   let listMarkupCache = '';
   let customName = '';
   let customNotes = '';
 
-  function resetSessionProgress() {
-    completed = tuningTargets.map(() => false);
-    consecutiveHits = tuningTargets.map(() => 0);
-    detectedNote = '—';
-    detectedFrequency = null;
-    targetInfo = null;
+  function resetSessionProgress({ clearCompleted = true } = {}) {
+    if (clearCompleted) {
+      completed = tuningTargets.map(() => false);
+    }
+    recentFrequencies = [];
+    recentCents = [];
+    currentFrame = null;
     lastHeardAt = 0;
-    lastStableReading = null;
-    recentFrequencies = [];
-    lockedTargetIndex = null;
+    lastStableFrame = null;
+    heldCenteredNote = null;
+    heldCenteredSince = 0;
     listMarkupCache = '';
-  }
-
-  function getLockedTarget() {
-    return Number.isInteger(lockedTargetIndex) ? tuningTargets[lockedTargetIndex] || null : null;
-  }
-
-  function clearLockedTarget() {
-    lockedTargetIndex = null;
-  }
-
-  function toggleLockedTarget(index) {
-    lockedTargetIndex = lockedTargetIndex === index ? null : index;
-    targetInfo = null;
-    lastStableReading = null;
-    detectedFrequency = null;
-    detectedNote = '—';
-    recentFrequencies = [];
   }
 
   function getModeState() {
@@ -337,6 +560,14 @@ export function createInstrumentTunerModule() {
     return resolveSelectedTuning(getOptions(), currentTuningId);
   }
 
+  function rebuildTargets(selected = getSelectedTuning()) {
+    tuningTargets = buildTuningTargets(selected || PRESET_TUNINGS[0], { a4Frequency });
+    if (!tuningTargets.length) {
+      tuningTargets = buildTuningTargets(PRESET_TUNINGS[0], { a4Frequency });
+      currentTuningId = PRESET_TUNINGS[0].id;
+    }
+  }
+
   function syncSelectedTuning() {
     const modeState = getModeState();
     const options = getOptions();
@@ -346,11 +577,8 @@ export function createInstrumentTunerModule() {
     }
 
     currentTuningId = selected.id;
-    tuningTargets = buildTuningTargets(selected);
-    if (!tuningTargets.length) {
-      tuningTargets = buildTuningTargets(PRESET_TUNINGS[0]);
-      currentTuningId = PRESET_TUNINGS[0].id;
-    }
+    a4Frequency = normalizeA4Frequency(modeState.a4Frequency ?? a4Frequency);
+    rebuildTargets(selected);
     resetSessionProgress();
     return selected;
   }
@@ -394,29 +622,62 @@ export function createInstrumentTunerModule() {
     }
   }
 
+  function getDisplayFrame() {
+    if (currentFrame?.frequency) {
+      return { ...currentFrame, isHeld: false };
+    }
+
+    if (lastStableFrame && isListening && Date.now() - lastHeardAt <= HELD_GUIDANCE_MS) {
+      return {
+        ...lastStableFrame,
+        classification: classifyPitchFrame({ isHeld: true }),
+        isHeld: true,
+      };
+    }
+
+    return {
+      frequency: null,
+      clarity: 0,
+      rms: 0,
+      chromatic: null,
+      manual: null,
+      classification: classifyPitchFrame(),
+      isHeld: false,
+    };
+  }
+
   function updateLiveState() {
     if (!root) {
       return;
     }
 
-    const selected = getSelectedTuning();
+    const frame = getDisplayFrame();
+    const classification = frame.classification;
+    const comparisonCents = frame.chromatic?.cents;
+    const centeredHoldMs = heldCenteredSince && heldCenteredNote === frame.chromatic?.note
+      ? Date.now() - heldCenteredSince
+      : 0;
     const statusNode = root.querySelector('[data-tuner-status]');
     const errorNode = root.querySelector('[data-tuner-error]');
     const buttonNode = root.querySelector('[data-tuner-toggle]');
     const detectedNode = root.querySelector('[data-tuner-detected]');
+    const centsNode = root.querySelector('[data-tuner-cents]');
+    const fineNode = root.querySelector('[data-tuner-fine]');
     const frequencyNode = root.querySelector('[data-tuner-frequency]');
     const targetNode = root.querySelector('[data-tuner-target]');
-    const driftNode = root.querySelector('[data-tuner-drift]');
-    const detailNode = root.querySelector('[data-tuner-detail]');
-    const cueNode = root.querySelector('[data-tuner-cue]');
+    const targetCentsNode = root.querySelector('[data-tuner-target-cents]');
+    const rangeNode = root.querySelector('[data-tuner-range]');
+    const stateNode = root.querySelector('[data-tuner-state]');
+    const guidanceNode = root.querySelector('[data-tuner-guidance]');
+    const clarityNode = root.querySelector('[data-tuner-clarity]');
+    const rmsNode = root.querySelector('[data-tuner-rms]');
     const heardNode = root.querySelector('[data-tuner-heard]');
     const needleNode = root.querySelector('[data-tuner-needle]');
+    const fineNeedleNode = root.querySelector('[data-tuner-fine-needle]');
     const meterNode = root.querySelector('[data-tuner-meter]');
     const listNode = root.querySelector('[data-tuner-strings]');
-    const lockedTarget = getLockedTarget();
-    const effectiveReading = targetInfo || lastStableReading;
-    const guidance = getPitchGuidance(effectiveReading?.meterCents ?? effectiveReading?.cents);
-    const isHeldReading = !targetInfo && Boolean(lastStableReading) && isListening;
+    const a4Node = root.querySelector('[data-tuner-a4]');
+    const holdNode = root.querySelector('[data-tuner-hold]');
 
     if (statusNode) {
       statusNode.textContent = statusMessage;
@@ -429,53 +690,85 @@ export function createInstrumentTunerModule() {
       buttonNode.textContent = isListening ? 'Stop mic' : 'Start mic';
     }
     if (detectedNode) {
-      detectedNode.textContent = detectedNote;
+      detectedNode.textContent = frame.chromatic?.note || '—';
+    }
+    if (centsNode) {
+      centsNode.textContent = formatCents(frame.chromatic?.cents);
+    }
+    if (fineNode) {
+      fineNode.textContent = classification.precise ? formatCents(comparisonCents, { precise: true }) : 'Unstable';
     }
     if (frequencyNode) {
-      frequencyNode.textContent = Number.isFinite(detectedFrequency)
-        ? `${detectedFrequency.toFixed(1)} Hz live`
-        : isHeldReading && Number.isFinite(lastStableReading?.frequency)
-          ? `${lastStableReading.frequency.toFixed(1)} Hz last heard`
+      frequencyNode.textContent = frame.isHeld
+        ? `${formatFrequency(frame.frequency)} held`
+        : frame.frequency
+          ? `${formatFrequency(frame.frequency)} live`
           : 'No stable pitch yet';
     }
     if (targetNode) {
-      targetNode.textContent = effectiveReading?.target?.note || lockedTarget?.note || (selected?.notes?.[0] || '—');
+      targetNode.textContent = frame.chromatic
+        ? `${frame.chromatic.note} ${formatFrequency(frame.chromatic.targetFrequency)}`
+        : 'Closest note will appear here';
     }
-    if (driftNode) {
-      driftNode.textContent = guidance.label;
+    if (targetCentsNode) {
+      targetCentsNode.textContent = Number.isFinite(comparisonCents)
+        ? `${formatCents(comparisonCents, { precise: classification.precise })} from ${frame.chromatic.note}`
+        : 'Play a string to get a live offset';
     }
-    if (detailNode) {
-      detailNode.textContent = guidance.detail;
+    if (rangeNode) {
+      rangeNode.textContent = frame.chromatic ? getChromaticRangeLabel(frame.chromatic.note) : '—';
     }
-    if (cueNode) {
-      cueNode.textContent = guidance.instruction;
+    if (stateNode) {
+      stateNode.textContent = classification.label;
+    }
+    if (guidanceNode) {
+      guidanceNode.textContent = classification.detail;
+    }
+    if (clarityNode) {
+      clarityNode.textContent = formatPercent(frame.clarity);
+    }
+    if (rmsNode) {
+      rmsNode.textContent = frame.rms ? `${(frame.rms * 100).toFixed(1)}%` : '—';
     }
     if (heardNode) {
-      heardNode.textContent = lockedTarget
-        ? `Locked ${lockedTarget.note}`
-        : isHeldReading
-          ? 'Held reading'
-          : isListening
-            ? 'Live'
-            : 'Idle';
+      heardNode.textContent = frame.isHeld
+        ? 'Held reading'
+        : isListening
+          ? 'Chromatic live'
+          : 'Idle';
     }
     if (needleNode) {
-      needleNode.style.left = `${getMeterOffset(effectiveReading?.meterCents ?? effectiveReading?.cents)}%`;
+      needleNode.style.left = `${getMeterOffset(frame.chromatic?.cents)}%`;
+    }
+    if (fineNeedleNode) {
+      fineNeedleNode.style.left = `${getMeterOffset(comparisonCents, FINE_METER_CENTS)}%`;
     }
     if (meterNode) {
-      meterNode.dataset.state = guidance.state;
-      meterNode.dataset.mode = lockedTarget ? 'locked' : 'auto';
+      meterNode.dataset.state = classification.state;
+      meterNode.dataset.mode = 'chromatic';
+    }
+    if (a4Node) {
+      a4Node.value = a4Frequency.toFixed(1);
+    }
+    if (holdNode) {
+      holdNode.textContent = centeredHoldMs > 0
+        ? `${(centeredHoldMs / 1000).toFixed(1)}s centered hold`
+        : '0.0s centered hold';
     }
     if (listNode) {
       const nextMarkup = tuningTargets
         .map((target) => {
           const isComplete = completed[target.index];
-          const isActive = effectiveReading?.target?.index === target.index;
-          const isLocked = lockedTarget?.index === target.index;
+          const rowReady = heldCenteredNote === target.note && centeredHoldMs >= HOLD_TO_MARK_MS;
           return `
-            <li class="tuner-string-item${isComplete ? ' is-complete' : ''}${isActive ? ' is-active' : ''}${isLocked ? ' is-locked' : ''}" data-target-index="${target.index}" tabindex="0" role="button" aria-pressed="${isLocked ? 'true' : 'false'}">
-              <span class="tuner-string-note">${escapeHtml(target.note)}</span>
-              <span class="tuner-string-state">${isComplete ? 'Locked' : isLocked ? `${guidance.label} target` : isActive ? guidance.label : 'Pending'}</span>
+            <li class="tuner-string-item${isComplete ? ' is-complete' : ''}${rowReady ? ' is-ready' : ''}" data-target-index="${target.index}">
+              <div class="tuner-string-target">
+                <span class="tuner-string-note">${escapeHtml(target.note)}</span>
+                <span class="tuner-string-frequency">${escapeHtml(formatFrequency(target.frequency))}</span>
+              </div>
+              <button type="button" class="tuner-string-done" data-target-action="done" aria-pressed="${isComplete ? 'true' : 'false'}">
+                ${isComplete ? 'Done' : rowReady ? 'Ready' : 'Mark'}
+              </button>
             </li>
           `;
         })
@@ -494,7 +787,7 @@ export function createInstrumentTunerModule() {
     const selected = resolveSelectedTuning(options, currentTuningId) || PRESET_TUNINGS[0];
     const header = renderPuzzlePanelHeader({
       title: 'Instrument Tuner',
-      description: 'Pick a preset, allow the mic, and lock each string once to count a full local tuning. Advanced options let you save a custom note sequence locally.',
+      description: 'Chromatic precision first. Preset strings are references you mark manually when they sound right.',
       levelPicker: `
         <div class="tuner-level-placeholder">
           <span>${escapeHtml(selected.label)}</span>
@@ -506,7 +799,7 @@ export function createInstrumentTunerModule() {
           { label: 'Selected', value: escapeHtml(modeState.selectedInstrumentLabel || selected.label) },
         ],
         [
-          { label: 'Notes', value: escapeHtml(selected.notes.join(' ')), valueColSpan: 3 },
+          { label: 'Reference', value: `A4 ${a4Frequency.toFixed(1)} Hz`, valueColSpan: 3 },
         ],
       ],
     });
@@ -515,7 +808,52 @@ export function createInstrumentTunerModule() {
       <section class="puzzle-card tuner-card">
         ${header}
         <div class="tuner-workbench">
-          <section class="tuner-controls-card">
+          <section class="tuner-console-card" data-tuner-meter data-state="no-signal" data-mode="chromatic" data-ready="false">
+            <div class="tuner-console-top">
+              <div class="tuner-note-block">
+                <p class="puzzle-kicker">Detected</p>
+                <div class="tuner-note-readout" data-tuner-detected>—</div>
+                <p class="tuner-meter-frequency" data-tuner-frequency>No stable pitch yet</p>
+              </div>
+              <div class="tuner-cents-block">
+                <span data-tuner-state>No signal</span>
+                <strong data-tuner-cents>—</strong>
+                <em data-tuner-fine>Unstable</em>
+              </div>
+            </div>
+            <div class="tuner-meter-track" aria-label="Chromatic cents meter">
+              <span>-50</span>
+              <div class="tuner-meter-bar">
+                <div class="tuner-meter-center"></div>
+                <div class="tuner-meter-needle" data-tuner-needle></div>
+              </div>
+              <span>+50</span>
+            </div>
+            <div class="tuner-fine-track" aria-label="Fine cents meter">
+              <span>-5</span>
+              <div class="tuner-fine-bar">
+                <div class="tuner-meter-center"></div>
+                <div class="tuner-meter-needle" data-tuner-fine-needle></div>
+              </div>
+              <span>+5</span>
+            </div>
+            <div class="tuner-guidance-panel">
+              <div class="tuner-guidance-primary">
+                <strong data-tuner-target>Closest note will appear here</strong>
+                <span data-tuner-target-cents>Play a string to get a live offset</span>
+              </div>
+              <p class="tuner-guidance-note" data-tuner-guidance>Play one string cleanly.</p>
+              <p class="tuner-guidance-range">Range <span data-tuner-range>—</span></p>
+            </div>
+            <div class="tuner-signal-grid">
+              <div><span>Clarity</span><strong data-tuner-clarity>0%</strong></div>
+              <div><span>Signal</span><strong data-tuner-rms>—</strong></div>
+              <div><span>Live</span><strong data-tuner-heard>Idle</strong></div>
+              <div><span>Hold</span><strong data-tuner-hold>0.0s centered hold</strong></div>
+            </div>
+          </section>
+
+          <section class="tuner-side-card">
             <label class="tuner-field">
               <span>Tuning source</span>
               <select class="tuner-select" data-tuner-select>
@@ -529,16 +867,37 @@ export function createInstrumentTunerModule() {
             <div class="tuner-button-row">
               <button type="button" class="puzzle-button" data-tuner-toggle>${isListening ? 'Stop mic' : 'Start mic'}</button>
             </div>
+            <p class="tuner-status" data-tuner-status>${escapeHtml(statusMessage)}</p>
             <p class="tuner-error" data-tuner-error hidden></p>
+            <ul class="tuner-string-list" data-tuner-strings></ul>
             <details class="tuner-advanced-panel">
               <summary class="tuner-advanced-toggle">
                 <span class="tuner-advanced-copy">
                   <strong>Advanced options</strong>
-                  <em>Create and save a custom tuning</em>
+                  <em>Calibration and custom tuning</em>
                 </span>
                 <span class="tuner-advanced-chevron" aria-hidden="true">v</span>
               </summary>
               <div class="tuner-advanced-body">
+                <form class="tuner-calibration-form" data-calibration-form>
+                  <label class="tuner-field">
+                    <span>A4 reference</span>
+                    <input
+                      class="tuner-input"
+                      type="number"
+                      name="a4"
+                      data-tuner-a4
+                      min="${MIN_A4_FREQUENCY}"
+                      max="${MAX_A4_FREQUENCY}"
+                      step="0.1"
+                      value="${a4Frequency.toFixed(1)}"
+                    />
+                  </label>
+                  <div class="tuner-button-row">
+                    <button type="submit" class="puzzle-button puzzle-button-secondary">Apply A4</button>
+                    <button type="button" class="puzzle-button puzzle-button-secondary" data-reset-a4>Reset 440</button>
+                  </div>
+                </form>
                 <form class="tuner-custom-form" data-custom-form>
                   <label class="tuner-field">
                     <span>Custom tuning name</span>
@@ -565,37 +924,6 @@ export function createInstrumentTunerModule() {
               </div>
             </details>
           </section>
-          <section class="tuner-meter-card">
-            <div class="tuner-meter-head">
-              <div class="tuner-note-block">
-                <p class="puzzle-kicker">Detected</p>
-                <div class="tuner-note-readout" data-tuner-detected>${escapeHtml(detectedNote)}</div>
-                <p class="tuner-meter-frequency" data-tuner-frequency>${Number.isFinite(detectedFrequency) ? `${detectedFrequency.toFixed(1)} Hz` : 'No stable pitch yet'}</p>
-              </div>
-              <div class="tuner-meter-target">
-                <span>Target</span>
-                <strong data-tuner-target>${escapeHtml(selected.notes[0] || '—')}</strong>
-                <em data-tuner-heard>Idle</em>
-              </div>
-            </div>
-            <div class="tuner-guidance-panel" data-tuner-meter data-state="unknown">
-              <div class="tuner-guidance-top">
-                <strong data-tuner-drift>Listen</strong>
-                <span data-tuner-detail>Pluck a string cleanly to place it on the meter.</span>
-              </div>
-              <div class="tuner-guidance-cue" data-tuner-cue>No stable pitch yet</div>
-            </div>
-            <div class="tuner-meter-track">
-              <span>-50</span>
-              <div class="tuner-meter-bar">
-                <div class="tuner-meter-center"></div>
-                <div class="tuner-meter-needle" data-tuner-needle></div>
-              </div>
-              <span>+50</span>
-            </div>
-            <p class="tuner-status" data-tuner-status>${escapeHtml(statusMessage)}</p>
-            <ul class="tuner-string-list" data-tuner-strings></ul>
-          </section>
         </div>
       </section>
     `;
@@ -605,7 +933,7 @@ export function createInstrumentTunerModule() {
       const nextSelected = resolveSelectedTuning(getOptions(), nextId);
       stopAudio(true);
       currentTuningId = nextSelected?.id || PRESET_TUNINGS[0].id;
-      tuningTargets = buildTuningTargets(nextSelected || PRESET_TUNINGS[0]);
+      rebuildTargets(nextSelected || PRESET_TUNINGS[0]);
       resetSessionProgress();
       context?.setSelectedTuning?.({
         tuningId: currentTuningId,
@@ -615,9 +943,10 @@ export function createInstrumentTunerModule() {
       render();
     });
 
-    const handleTargetLock = (event) => {
+    root.querySelector('[data-tuner-strings]')?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-target-action]');
       const item = event.target.closest('[data-target-index]');
-      if (!item) {
+      if (!button || !item) {
         return;
       }
 
@@ -626,31 +955,21 @@ export function createInstrumentTunerModule() {
         return;
       }
 
-      event.preventDefault();
-      toggleLockedTarget(index);
-      const target = getLockedTarget();
-      setStatus(
-        target
-          ? `Locked to ${target.note}. The hints will now tune that string specifically.`
-          : 'Returned to automatic target detection.',
-      );
+      completed[index] = !completed[index];
+      listMarkupCache = '';
       updateLiveState();
-    };
 
-    root.querySelector('[data-tuner-strings]')?.addEventListener('pointerdown', handleTargetLock);
-
-    root.querySelector('[data-tuner-strings]')?.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter' && event.key !== ' ') {
-        return;
+      if (isTuningSessionComplete(completed)) {
+        const selectedTuning = getSelectedTuning();
+        context?.recordInstrumentTuning?.({
+          tuningId: selectedTuning?.id,
+          label: selectedTuning?.label,
+          durationMs: sessionStartedAt ? Date.now() - sessionStartedAt : 0,
+        });
+        setStatus(`${selectedTuning?.label || 'Instrument'} marked tuned. The meter stays fully chromatic.`);
+      } else {
+        setStatus(completed[index] ? `${tuningTargets[index]?.note || 'String'} marked done.` : `${tuningTargets[index]?.note || 'String'} returned to pending.`);
       }
-
-      const item = event.target.closest('[data-target-index]');
-      if (!item) {
-        return;
-      }
-
-      event.preventDefault();
-      item.click();
     });
 
     root.querySelector('[data-tuner-toggle]')?.addEventListener('click', () => {
@@ -661,6 +980,26 @@ export function createInstrumentTunerModule() {
       }
 
       startListening();
+    });
+
+    root.querySelector('[data-calibration-form]')?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      a4Frequency = normalizeA4Frequency(formData.get('a4'));
+      rebuildTargets();
+      resetSessionProgress({ clearCompleted: false });
+      context?.setTunerCalibration?.({ a4Frequency });
+      setStatus(`A4 reference set to ${a4Frequency.toFixed(1)} Hz.`);
+      updateLiveState();
+    });
+
+    root.querySelector('[data-reset-a4]')?.addEventListener('click', () => {
+      a4Frequency = DEFAULT_A4_FREQUENCY;
+      rebuildTargets();
+      resetSessionProgress({ clearCompleted: false });
+      context?.setTunerCalibration?.({ a4Frequency });
+      setStatus('A4 reference reset to 440.0 Hz.');
+      updateLiveState();
     });
 
     root.querySelector('[data-custom-form]')?.addEventListener('submit', (event) => {
@@ -704,7 +1043,7 @@ export function createInstrumentTunerModule() {
       });
       stopAudio(true);
       currentTuningId = tuning.id;
-      tuningTargets = buildTuningTargets(tuning);
+      rebuildTargets(tuning);
       resetSessionProgress();
       customName = '';
       customNotes = '';
@@ -729,12 +1068,15 @@ export function createInstrumentTunerModule() {
     }
 
     stopAudio(true);
-    tuningTargets = buildTuningTargets(selected);
+    rebuildTargets(selected);
     resetSessionProgress();
 
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
+          channelCount: { ideal: 1 },
+          sampleRate: { ideal: 44100 },
+          latency: { ideal: 0.01 },
           echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false,
@@ -747,7 +1089,7 @@ export function createInstrumentTunerModule() {
       sampleBuffer = new Float32Array(analyser.fftSize);
       pitchDetector = PitchDetector.forFloat32Array(analyser.fftSize);
       pitchDetector.clarityThreshold = 0.9;
-      pitchDetector.minVolumeDecibels = -35;
+      pitchDetector.minVolumeDecibels = -42;
       sourceNode.connect(analyser);
       isListening = true;
       sessionStartedAt = Date.now();
@@ -760,9 +1102,10 @@ export function createInstrumentTunerModule() {
         label: selected.label,
         startedAt: sessionStartedAt,
         notes: selected.notes,
+        a4Frequency,
       });
       context?.markDiscovered?.(true);
-      setStatus(`Listening for ${selected.label}. Play one string clearly.`);
+      setStatus(`Listening for ${selected.label}. The meter will follow the closest note only.`);
       analyzeFrame();
     } catch (error) {
       stopAudio(true);
@@ -776,107 +1119,80 @@ export function createInstrumentTunerModule() {
     }
 
     analyser.getFloatTimeDomainData(sampleBuffer);
+    const rms = computeRms(sampleBuffer);
     const [rawFrequency, clarity] = pitchDetector.findPitch(sampleBuffer, audioContext.sampleRate);
-    const hasUsablePitch = Number.isFinite(rawFrequency)
-      && rawFrequency >= MIN_PITCH_FREQUENCY
-      && rawFrequency <= MAX_PITCH_FREQUENCY
-      && clarity >= MIN_PITCH_CLARITY;
-    const frequency = hasUsablePitch ? rawFrequency : null;
+    const frame = createTuningFrame({
+      rawFrequency,
+      clarity,
+      rms,
+      recentFrequencies,
+      centsHistory: recentCents,
+      a4Frequency,
+    });
 
-    if (!Number.isFinite(frequency)) {
+    currentFrame = frame;
+
+    if (!Number.isFinite(frame.frequency)) {
       const recentlyHeard = Date.now() - lastHeardAt <= HELD_GUIDANCE_MS;
-      detectedFrequency = null;
-      detectedNote = lastStableReading?.detectedNote || '—';
-      targetInfo = null;
       if (!recentlyHeard) {
-        lastStableReading = null;
+        lastStableFrame = null;
       }
-      setStatus(
-        lastStableReading
-          ? `String decayed. Last heard ${lastStableReading.target.note}; adjust ${getPitchGuidance(lastStableReading.cents).label.toLowerCase()} and pluck again.`
-          : 'Listening… pluck one target string cleanly.',
-      );
+      setStatus(lastStableFrame ? 'Held reading. Pluck again for a fresh value.' : 'Listening... play one string cleanly.');
       updateLiveState();
       frameId = requestAnimationFrame(analyzeFrame);
       return;
     }
 
-    recentFrequencies.push(frequency);
+    recentFrequencies.push(rawFrequency);
     if (recentFrequencies.length > DETECTION_SMOOTHING_WINDOW) {
       recentFrequencies.shift();
     }
 
-    const smoothedFrequency = median(recentFrequencies) || frequency;
-    detectedFrequency = smoothedFrequency;
-    detectedNote = frequencyToNoteName(smoothedFrequency) || '—';
-    // cents from the nearest chromatic note — used for the meter display so the
-    // needle never jumps when the target auto-advances to the next string
-    const meterCents = centsBetween(smoothedFrequency, noteNameToFrequency(detectedNote));
-    const lockedTarget = getLockedTarget();
-    targetInfo = lockedTarget
-      ? {
-          target: lockedTarget,
-          cents: centsBetween(smoothedFrequency, lockedTarget.frequency),
-          meterCents,
-        }
-      : findClosestTuningTarget(tuningTargets, smoothedFrequency, {
-          completed,
-          incompleteOnly: true,
-        }) || findClosestTuningTarget(tuningTargets, smoothedFrequency);
-
-    if (!targetInfo) {
-      setStatus('Pitch detected, but no target note matched cleanly yet.');
-      updateLiveState();
-      frameId = requestAnimationFrame(analyzeFrame);
-      return;
+    const comparisonCents = frame.chromatic?.cents;
+    recentCents.push(comparisonCents);
+    if (recentCents.length > STABILITY_WINDOW) {
+      recentCents.shift();
     }
 
-    const { target, cents } = targetInfo;
-    targetInfo = { target, cents, meterCents };
-    lastHeardAt = Date.now();
-    lastStableReading = {
-      target,
-      cents,
-      meterCents,
-      frequency: smoothedFrequency,
-      detectedNote,
-      heardAt: lastHeardAt,
-    };
-    if (Math.abs(cents) <= TUNED_CENTS_THRESHOLD) {
-      consecutiveHits[target.index] += 1;
-      setStatus(`${target.note} is nearly centered. Hold it steady.`);
+    if (frame.classification.stable) {
+      lastHeardAt = Date.now();
+      lastStableFrame = frame;
+    }
 
-      if (!completed[target.index] && consecutiveHits[target.index] >= TUNED_FRAME_THRESHOLD) {
-        completed[target.index] = true;
-        if (lockedTargetIndex === target.index) {
-          clearLockedTarget();
+    const note = frame.chromatic?.note || 'pitch';
+    const isCentered = frame.classification.stable && Math.abs(comparisonCents) <= READY_CENTS_THRESHOLD;
+    if (isCentered && note) {
+      if (heldCenteredNote === note) {
+        if (!heldCenteredSince) {
+          heldCenteredSince = Date.now();
         }
-        setStatus(`${target.note} locked. Move to the next string.`);
+      } else {
+        heldCenteredNote = note;
+        heldCenteredSince = Date.now();
       }
     } else {
-      consecutiveHits[target.index] = 0;
-      setStatus(
-        cents < 0
-          ? `Bring ${target.note} up ${Math.abs(Math.round(cents))} cents.`
-          : `Bring ${target.note} down ${Math.abs(Math.round(cents))} cents.`,
-      );
+      heldCenteredNote = null;
+      heldCenteredSince = 0;
+    }
+
+    if (frame.classification.state === 'weak') {
+      setStatus('Weak signal. Pluck closer to the mic or reduce background noise.');
+    } else if (frame.classification.state === 'unstable') {
+      setStatus(`Closest note is ${note}. Hold it steady to get a precise offset.`);
+    } else if (frame.classification.state === 'centered') {
+      const centeredHoldMs = heldCenteredNote === note && heldCenteredSince ? Date.now() - heldCenteredSince : 0;
+      if (centeredHoldMs >= HOLD_TO_MARK_MS) {
+        setStatus(`${note} has stayed centered for ${(centeredHoldMs / 1000).toFixed(1)}s. Mark the string if that's what you tuned.`);
+      } else {
+        setStatus(`${note} is centered. Hold it a bit longer or mark it whenever it sounds right.`);
+      }
+    } else if (frame.classification.state === 'flat') {
+      setStatus(`Closest note is ${note}. Live offset: ${formatCents(comparisonCents, { precise: true })}.`);
+    } else if (frame.classification.state === 'sharp') {
+      setStatus(`Closest note is ${note}. Live offset: ${formatCents(comparisonCents, { precise: true })}.`);
     }
 
     updateLiveState();
-
-    if (isTuningSessionComplete(completed)) {
-      const selected = getSelectedTuning();
-      context?.recordInstrumentTuning?.({
-        tuningId: selected?.id,
-        label: selected?.label,
-        durationMs: Date.now() - sessionStartedAt,
-      });
-      stopAudio(false);
-      resetSessionProgress();
-      setStatus(`${selected?.label || 'Instrument'} tuned. Start the mic for another pass.`);
-      return;
-    }
-
     frameId = requestAnimationFrame(analyzeFrame);
   }
 

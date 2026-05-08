@@ -5,6 +5,7 @@ export const STORAGE_KEY = 'dhruv-archives:puzzles:v2';
 
 const DEFAULT_TUNER_TUNING_ID = 'preset:guitar';
 const DEFAULT_TUNER_LABEL = 'Guitar';
+const DEFAULT_TUNER_A4_FREQUENCY = 440;
 const TUNER_PRESET_LABELS = Object.freeze({
   'preset:guitar': 'Guitar',
   'preset:ukulele': 'Ukulele',
@@ -65,6 +66,7 @@ function createTunerModeState() {
     completedTunings: 0,
     selectedTuningId: DEFAULT_TUNER_TUNING_ID,
     selectedInstrumentLabel: DEFAULT_TUNER_LABEL,
+    a4Frequency: DEFAULT_TUNER_A4_FREQUENCY,
     inProgress: null,
   };
 }
@@ -102,6 +104,15 @@ function normalizeCount(value) {
 
 function normalizeDuration(value) {
   return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : null;
+}
+
+function normalizeA4Frequency(value) {
+  const frequency = Number.parseFloat(value);
+  if (!Number.isFinite(frequency)) {
+    return DEFAULT_TUNER_A4_FREQUENCY;
+  }
+
+  return Math.min(490, Math.max(390, Math.round(frequency * 10) / 10));
 }
 
 function normalizeLabel(value, fallback = '') {
@@ -230,6 +241,7 @@ function normalizeTunerModeState(value, customTunings = []) {
       source.selectedInstrumentLabel,
       resolveTuningLabel(selectedTuningId, customTunings),
     ),
+    a4Frequency: normalizeA4Frequency(source.a4Frequency),
     inProgress: source.inProgress && typeof source.inProgress === 'object' ? clone(source.inProgress) : null,
   };
 }
@@ -521,6 +533,12 @@ export function createStore({
         const nextTuningId = normalizeLabel(tuningId, DEFAULT_TUNER_TUNING_ID);
         mode.selectedTuningId = nextTuningId;
         mode.selectedInstrumentLabel = normalizeLabel(label, resolveTuningLabel(nextTuningId, draft.customTunings));
+      });
+    },
+    setTunerCalibration({ a4Frequency } = {}) {
+      return update((draft) => {
+        const mode = getMode('instrument-tuner', draft);
+        mode.a4Frequency = normalizeA4Frequency(a4Frequency);
       });
     },
     saveCustomTuning(tuning) {

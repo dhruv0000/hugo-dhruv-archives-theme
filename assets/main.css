@@ -1754,7 +1754,7 @@ article .highlight {
   62.5%  { background-image: url("/button/dark-3.webp"); opacity: 1; }
   75%  { background-image: url("/button/dark-2.webp"); opacity: 1; }
   87.5%  { background-image: url("/button/dark-1.webp"); opacity: 1; }
-  100% { background-image: url("/button/dark-1.webp"); opacity: 1; } /* Prevent flicker */
+  100% { background-image: url("/button/dark-1.webp"); opacity: 1; }
 }
 
 @keyframes lightModeTransition {

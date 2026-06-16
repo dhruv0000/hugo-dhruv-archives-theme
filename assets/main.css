@@ -1770,26 +1770,18 @@ article .highlight {
 }
 
 .btn-dark {
-  /* width: 1.5rem;
-  height: 1.5rem; */
   background-size: cover;
   background-position: center;
   cursor: pointer;
 }
 
-/* For example, if you add a class "anim-dark" in JS: */
 .btn-dark.anim-dark {
   animation: darkModeTransition 0.6s ease-in-out forwards;
 }
 
-/* And "anim-light" for the reverse: */
 .btn-dark.anim-light {
   animation: lightModeTransition 0.6s ease-in-out forwards;
 }
-
-/* .\[transition\:_background-position_0\.4s_steps\(5\)\] {
-  transition: background-position 0.4s steps(5);
-} */
 
 .dark\:prose-invert:is(.dark *) {
   --tw-prose-body: var(--tw-prose-invert-body);

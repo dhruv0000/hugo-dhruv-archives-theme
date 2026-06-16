@@ -1737,7 +1737,7 @@ article .highlight {
 
 /* Dark mode button animation */
 .w-button {
-  width: 2.5rem;
+  width: 2.85rem;
 }
 
 .h-button {
@@ -1754,18 +1754,18 @@ article .highlight {
   62.5%  { background-image: url("/button/dark-3.webp"); opacity: 1; }
   75%  { background-image: url("/button/dark-2.webp"); opacity: 1; }
   87.5%  { background-image: url("/button/dark-1.webp"); opacity: 1; }
-  100% { background-image: url("/button/dark-1.webp"); opacity: 1; }
+  100% { background-image: url("/button/dark-0.webp"); opacity: 1; }
 }
 
 @keyframes lightModeTransition {
-  0%   { background-image: url("/button/dark-1.webp"); opacity: 1; }
-  12.5%  { background-image: url("/button/dark-2.webp"); opacity: 1; }
-  25%  { background-image: url("/button/dark-3.webp"); opacity: 1; }
-  37.5%  { background-image: url("/button/dark-4.webp"); opacity: 1; }
-  50%  { background-image: url("/button/bright-4.webp"); opacity: 1; }
-  62.5%  { background-image: url("/button/bright-3.webp"); opacity: 1; }
-  75%  { background-image: url("/button/bright-2.webp"); opacity: 1; }
-  87.5%  { background-image: url("/button/bright-1.webp"); opacity: 1; }
+  0%   { background-image: url("/button/dark-0.webp"); opacity: 1; }
+  12.5%  { background-image: url("/button/dark-1.webp"); opacity: 1; }
+  25%  { background-image: url("/button/dark-2.webp"); opacity: 1; }
+  37.5%  { background-image: url("/button/dark-3.webp"); opacity: 1; }
+  50%  { background-image: url("/button/dark-4.webp"); opacity: 1; }
+  62.5%  { background-image: url("/button/bright-4.webp"); opacity: 1; }
+  75%  { background-image: url("/button/bright-3.webp"); opacity: 1; }
+  87.5%  { background-image: url("/button/bright-2.webp"); opacity: 1; }
   100%  { background-image: url("/button/bright-1.webp"); opacity: 1; }
 }
 
@@ -1776,11 +1776,11 @@ article .highlight {
 }
 
 .btn-dark.anim-dark {
-  animation: darkModeTransition 0.6s ease-in-out forwards;
+  animation: darkModeTransition 0.7s ease-in-out forwards;
 }
 
 .btn-dark.anim-light {
-  animation: lightModeTransition 0.6s ease-in-out forwards;
+  animation: lightModeTransition 0.7s ease-in-out forwards;
 }
 
 .dark\:prose-invert:is(.dark *) {
